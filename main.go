@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	fmt.Println("hello world  000000")
+	fmt.Println("hello world  123456")
 
 }
