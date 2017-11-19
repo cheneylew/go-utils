@@ -1,9 +1,9 @@
-package goutil
+package main
 
 import (
 	"fmt"
 )
 
-func Main() {
-	fmt.Println("hello world  123456")
+func main() {
+	fmt.Println("hello world  dejunliu")
 }
