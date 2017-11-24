@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"github.com/cheneylew/goutil/utils"
 )
 
 func main() {
-	fmt.Println("hello world  dejunliu")
+	utils.JJKPrintln("hello world")
 }
