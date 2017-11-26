@@ -1,5 +1,8 @@
 package utils
 
+/*
+github.com/dchest/captcha/capexample
+*/
 import (
 	"github.com/dchest/captcha"
 	"image/jpeg"
@@ -13,7 +16,7 @@ func NewCaptcha(dir string,count, width, height int) (fpath string, fname string
 	imagePath := path2.Join(dir, fileName)
 
 	d := captcha.RandomDigits(count)
-	image := captcha.NewImage("abc", d,100,40)
+	image := captcha.NewImage("anyid", d,width,height)
 
 	file, err := os.Create(imagePath)
 	if err != nil {
