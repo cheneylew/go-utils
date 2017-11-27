@@ -40,6 +40,11 @@ func RandomString(n int) string {
 	return string(buf)
 }
 
+func RandomIntBetween(min,max int) int {
+	rand := mrand.New(mrand.NewSource(time.Now().UnixNano()))
+	return rand.Intn(max - min) + min
+}
+
 func JKRandInt(max int) int {
 	r := mrand.New(mrand.NewSource(time.Now().UnixNano()))
 	return r.Intn(max)
