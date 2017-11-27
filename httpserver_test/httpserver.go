@@ -9,17 +9,21 @@ import (
 	"encoding/json"
 )
 
+
+type User struct {
+	Id string
+	Balance float64
+}
+
 func timerStart() {
 	t1 := time.NewTicker(time.Millisecond * 3000)
 	go func() {
-		for t := range t1.C {
-			params := make(map[string]string)
-			params["username"] = "cheneylew"
-			params["password"] = "111111"
-			response := utils.HTTPPost("http://localhost:12345/json", params)
-			if t.Second() > 0 {
-				utils.JJKPrintln(response)
-			}
+		for range t1.C {
+			//params := make(map[string]string)
+			//params["username"] = "cheneylew"
+			//params["password"] = "111111"
+			//response := utils.HTTPPost("http://localhost:12345/json", params)
+			//utils.JJKPrintln(response)
 		}
 	}()
 }
@@ -51,9 +55,4 @@ func HttpServerStart() {
 	}
 
 	utils.JJKPrintln("http server end!")
-}
-
-type User struct {
-	Id string
-	Balance float64
 }

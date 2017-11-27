@@ -36,5 +36,5 @@ func Reader()  {
 }
 
 func main() {
-	ExampleScrape()
+	//ExampleScrape()
 }

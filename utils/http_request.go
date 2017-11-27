@@ -67,7 +67,7 @@ func DJDownloadImage(url string, relativeDirPath string) string {
 		fmt.Println("read image bytes error:",imagErr.Error())
 	}
 
-	imagePath := path.Join(relativeDirPath,JKIntToStr(int(JKTimeNowStamp()))+"-"+JKIntToStr(JKRandInt(10000))+fileType)
+	imagePath := path.Join(relativeDirPath,JKIntToStr(int(JKTimeNowStamp()))+"-"+JKIntToStr(RandomInt(10000))+fileType)
 	f,e := os.Create(imagePath)
 	if e != nil {
 		fmt.Println("create image file error :",e.Error())
