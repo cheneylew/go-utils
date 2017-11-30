@@ -58,3 +58,13 @@ func Count(array []interface{}, iterator ConditionIterator) int {
 	return count
 }
 
+func Contain(slice []string, value string) bool {
+	for _, val := range slice {
+		if val == value {
+			return true
+		}
+	}
+
+	return false
+}
+
