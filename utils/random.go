@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	mrand "math/rand"
 	"time"
-	"fmt"
 )
 
 // RandomBytes returns securely generated random bytes. It will panic
@@ -45,21 +44,7 @@ func RandomIntBetween(min,max int) int {
 	return rand.Intn(max - min) + min
 }
 
-func JKRandInt(max int) int {
+func RandomInt(max int) int {
 	r := mrand.New(mrand.NewSource(time.Now().UnixNano()))
 	return r.Intn(max)
-}
-
-func JKRandStr(length int) string {
-	lowerLetter := "qwertyuiopasdfghjklzxcvbnm"
-	upperLetter := "QWERTYUIOPASDFGHJKLZXCVBNM"
-	number := "0123456789"
-	pool := fmt.Sprintf("%v%v%v", lowerLetter, upperLetter, number)
-	result := ""
-	for i := 0; i < length; i++ {
-		index := JKRandInt(len(pool))
-		result = fmt.Sprintf("%s%c",result,pool[index])
-	}
-	
-	return result
 }
