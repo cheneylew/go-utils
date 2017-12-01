@@ -1,12 +1,30 @@
 package utils
 
-import "github.com/skip2/go-qrcode"
+import (
+	goqrcode "github.com/skip2/go-qrcode"
+	"os"
+	"github.com/tuotoo/qrcode"
+)
 
 func QRCodePNG(str string) ([]byte , error) {
-	return qrcode.Encode(str, qrcode.Highest,256)
+	return goqrcode.Encode(str, goqrcode.Highest,256)
 }
 
 func QRCodePNGWriteFile(str string,path string) error {
-	return qrcode.WriteFile(str, qrcode.Highest, 256, path)
+	return goqrcode.WriteFile(str, goqrcode.Highest, 256, path)
+}
+
+func QRCodeDecode(path string) (string,error) {
+	fi, err := os.Open(path)
+	if err != nil{
+		return "", err
+	}
+	defer fi.Close()
+	qrmatrix, err := qrcode.Decode(fi)
+	if err != nil{
+		return "", err
+	}
+
+	return qrmatrix.Content, nil
 }
 
