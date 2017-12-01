@@ -37,4 +37,5 @@ func Reader()  {
 
 func main() {
 	//ExampleScrape()
+	utils.QRCodePNGWriteFile("http://www.baidu.com/","/Users/apple/Desktop/a.png")
 }
