@@ -77,6 +77,7 @@ func JavaConstProcess()  {
 			enter = "\n"
 		}
 
+
 		lastClassName = result.ClassName
 		strs += fmt.Sprintf("%s#define K%s_%s\t\t@\"%s\"\t//%s\n",
 			enter,
