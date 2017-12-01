@@ -28,6 +28,5 @@ func FormatFlow(byteCount float64) string {
 	} else if byteCount < 1024*1024*1024*1024 {
 		return fmt.Sprintf("%.2f GB", byteCount/(1024 * 1024*1024))
 	}
-
 	return ""
 }
