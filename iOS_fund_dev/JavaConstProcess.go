@@ -14,8 +14,10 @@ type Const struct {
 	ClassName string
 }
 
+var FILE_DIR string = ""
+
 func filePath(name string) string {
-	dir := "/Users/dejunliu/Desktop/"
+	dir := FILE_DIR
 	return path.Join(dir, name)
 }
 
@@ -43,9 +45,10 @@ func strToConst(str string) *Const {
 	return nil
 }
 
-func JavaConstProcess()  {
+func JavaConstProcess(filedir, inputFileName, outputFileName string)  {
+	FILE_DIR = filedir
 
-	javaConst := utils.FileReadAllString(filePath("BizConstant.java"))
+	javaConst := utils.FileReadAllString(filePath(inputFileName))
 	rows := strings.Split(javaConst,"\n")
 
 	results := make([]*Const,0)
@@ -79,14 +82,28 @@ func JavaConstProcess()  {
 
 
 		lastClassName = result.ClassName
-		strs += fmt.Sprintf("%s#define K%s_%s\t\t@\"%s\"\t//%s\n",
-			enter,
+
+		row := ""
+
+		key := fmt.Sprintf("#define K%s_%s ",
 			result.ClassName,
-			result.Key,
-			result.Value,
-			result.Comment)
+			utils.Trim(strings.Replace(result.Key," ","_",-1)))
+		key += strings.Repeat(" ", 68 - len(key))
+		row += key
+
+		value := fmt.Sprintf("@\"%s\"", result.Value)
+		value += strings.Repeat(" ", 26 - len(value))
+		row += value
+
+		if len(result.Comment) > 0 {
+			comment := fmt.Sprintf("//%s", result.Comment)
+			row += comment
+		}
+
+		row += "\n"
+		strs += fmt.Sprintf("%s%s",enter, row)
 	}
-	utils.FileWriteString(filePath("a.pch"), strs)
+	utils.FileWriteString(filePath(outputFileName), strs)
 
 
 }
