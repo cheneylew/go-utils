@@ -45,7 +45,7 @@ func strToConst(str string) *Const {
 	return nil
 }
 
-func JavaConstProcess(filedir, inputFileName, outputFileName string)  {
+func JavaConstProcessMain(filedir, inputFileName, outputFileName string)  {
 	FILE_DIR = filedir
 
 	javaConst := utils.FileReadAllString(filePath(inputFileName))

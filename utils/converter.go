@@ -30,6 +30,15 @@ func ToFloat(str string) (float64, error) {
 	return res, err
 }
 
+func ToFloat64(str string) float64 {
+	res, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		res = 0.0
+	}
+	return res
+}
+
+
 // ToInt convert the input string to an integer, or 0 if the input is not an integer.
 func ToInt(str string) (int64, error) {
 	res, err := strconv.ParseInt(str, 0, 64)
