@@ -18,7 +18,7 @@ func Each(array []interface{}, iterator Iterator) {
 }
 
 // Map iterates over the slice and apply ResultIterator to every item. Returns new slice as a result.
-func MapIt(array []interface{}, iterator ResultIterator) []interface{} {
+func MapWithArray(array []interface{}, iterator ResultIterator) []interface{} {
 	var result = make([]interface{}, len(array))
 	for index, data := range array {
 		result[index] = iterator(data, index)

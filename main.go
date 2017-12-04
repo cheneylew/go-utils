@@ -40,4 +40,7 @@ func main() {
 	//utils.QRCodePNGWriteFile("http://www.baidu.com/","/Users/apple/Desktop/a.png")
 	//s, e := utils.QRCodeDecode("/Users/apple/Desktop/a.png")
 	//utils.JJKPrintln(s,e)
+	a := make([]interface{}, 0)
+	a = append(a,1,2)
+
 }
