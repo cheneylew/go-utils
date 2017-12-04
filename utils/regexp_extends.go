@@ -89,18 +89,33 @@ import (
 
 */
 
-func JKRegFindAll(src string,target_reg string) []string {
-	regObj := regexp.MustCompile(target_reg)
-	return regObj.FindAllString(src, -1)
+const RegexpMobile  = `(13|14|15|17|18)\d{9}`
+const RegexpEmail  = `\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*`
+const RegexpIP  = `\d+\.\d+\.\d+\.\d+`
+const RegexpChinese  = "[\u4e00-\u9fa5]+"
+const RegexpIDCard  = `^\d{15}|\d{18}$`
+const RegexpPassword  = `[a-zA-Z]\w{5,17}`
+const RegexpDate  = `\d{4}-\d{1,2}-\d{1,2}`
+const RegexpWord  = `[A-Za-z]+`
+const RegexpHTMLTag  = `<(\S*?)[^>]*>.*?</\1>|<.*? />`
+const RegexpTrimWhiteSpace  = `^\s*|\s*$`					//首尾空白字符
+
+func RegexpFindAll(src string,target_reg string) []string {
+	regexpObject := regexp.MustCompile(target_reg)
+	return regexpObject.FindAllString(src, -1)
 }
 
-func JKRegReplaceAll(src string,target_reg string,replace string) string {
-	regObj := regexp.MustCompile(target_reg)
-	return regObj.ReplaceAllString(src, replace)
+func RegexpReplaceAll(src string,old_str_regexp string,new_str string) string {
+	regexpObject := regexp.MustCompile(old_str_regexp)
+	return regexpObject.ReplaceAllString(src, new_str)
 }
 
-func JKRegMatch(src string,target_reg string) bool {
-	regObj := regexp.MustCompile(target_reg)
-	return regObj.Match([]byte(src))
+func RegexpContain(src string,target_reg string) bool {
+	regexpObject := regexp.MustCompile(target_reg)
+	return regexpObject.Match([]byte(src))
 }
 
+// 去除首尾空白字符
+func TrimWiteSpace(str string) string {
+	return RegexpReplaceAll(str,RegexpTrimWhiteSpace,"")
+}

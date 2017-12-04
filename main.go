@@ -40,5 +40,4 @@ func main() {
 	//utils.QRCodePNGWriteFile("http://www.baidu.com/","/Users/apple/Desktop/a.png")
 	//s, e := utils.QRCodeDecode("/Users/apple/Desktop/a.png")
 	//utils.JJKPrintln(s,e)
-	utils.JJKPrintln(utils.Equal(1,1.0))
 }

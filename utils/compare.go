@@ -32,4 +32,3 @@ func Equal(a, b interface{}) bool {
 
 	return ta == tb
 }
-
