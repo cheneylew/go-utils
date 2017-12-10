@@ -7,7 +7,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"log"
 	"github.com/cheneylew/goutil/utils"
-	cld "github.com/cheneylew/goutil/utils/calendar"
 )
 
 func ExampleScrape() {
@@ -36,13 +35,15 @@ func Reader()  {
 	fmt.Println(string(n))
 }
 
+type User struct {
+	Name string
+	Age int
+}
+
 func main() {
 	//ExampleScrape()
 	//utils.QRCodePNGWriteFile("http://www.baidu.com/","/Users/apple/Desktop/a.png")
 	//s, e := utils.QRCodeDecode("/Users/apple/Desktop/a.png")
 	//utils.JJKPrintln(s,e)
-	a := make([]interface{}, 0)
-	a = append(a,1,2)
 
-	utils.JJKPrintln(cld.AnimalTable)
 }
