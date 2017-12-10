@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/cheneylew/goutil/iOS_tool_server/database"
+	"github.com/cheneylew/goutil/beego_web_demo/database"
 )
 
 type MainController struct {
