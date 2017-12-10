@@ -1,5 +1,7 @@
 package models
 
-type User struct {
+import "github.com/cheneylew/goutil/utils/beego"
 
+type User struct {
+	beego.BBaseUser
 }
