@@ -7,6 +7,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"log"
 	"github.com/cheneylew/goutil/utils"
+	"github.com/astaxie/beego/cache"
+	"time"
 )
 
 func ExampleScrape() {
@@ -46,4 +48,20 @@ func main() {
 	//s, e := utils.QRCodeDecode("/Users/apple/Desktop/a.png")
 	//utils.JJKPrintln(s,e)
 
+	bm, err := cache.NewCache("memory", `{"interval":60}`)
+	if err != nil {
+		utils.JJKPrintln(err)
+	} else {
+		bm.Put("name","cheneylew",time.Second * 10)
+		ticker := time.NewTicker(time.Second * 1)
+		go func() {
+			for _ = range ticker.C {
+				utils.JJKPrintln(bm.Get("name"))
+			}
+		}()
+	}
+
+	for {
+
+	}
 }
