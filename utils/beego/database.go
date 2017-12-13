@@ -2,6 +2,8 @@ package beego
 
 import (
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/astaxie/beego/orm"
 	"github.com/cheneylew/goutil/utils"
 )

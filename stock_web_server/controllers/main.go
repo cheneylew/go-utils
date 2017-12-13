@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/cheneylew/goutil/beego_web_demo/database"
+	"github.com/cheneylew/goutil/stock_web_server/database"
 )
 
 type MainController struct {
