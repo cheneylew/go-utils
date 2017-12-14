@@ -4,8 +4,6 @@ import (
 	"github.com/cheneylew/goutil/utils/beego"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/cheneylew/goutil/stock_web_server/models"
-
-	"github.com/cheneylew/goutil/utils/beego"
 )
 
 var DB DataBase
