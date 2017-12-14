@@ -79,8 +79,11 @@ func (k *KLine)GetAddRate(last *KLine) float64 {
 }
 
 type StockInfo struct {
-	Qfqday [][]string
-	Qt map[string][]string
-	Prec string
-	Version string
+	MainIn float64
+	MainOut float64
+	MainTotal float64
+	RetailIn float64
+	RetailOut float64
+	RetailTotal float64
+	Date time.Time
 }
