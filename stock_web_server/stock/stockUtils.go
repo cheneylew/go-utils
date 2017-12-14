@@ -134,10 +134,11 @@ func UpdateOnlineCodesToDatabase()  {
 	utils.JJKPrintln("upload finished")
 }
 
-func GetRealTimeStockInfo(code string) *models.StockInfo {
+func GetRealTimeStockInfo(code string) []*models.StockInfo {
 	url := fmt.Sprintf(KRealTimeUrl,code)
 	s := utils.HTTPGet(url)
 	s1 := utils.RegexpFindAll(s,`".+"`)
+	var result []*models.StockInfo
 	if len(s1) > 0 {
 		infos := strings.Split(strings.Replace(s1[0],`"`,"",-1),"~")
 		for key, value := range infos {
@@ -158,9 +159,11 @@ func GetRealTimeStockInfo(code string) *models.StockInfo {
 		info1 := strToStockInfo(infos[14])
 		info2 := strToStockInfo(infos[15])
 		info3 := strToStockInfo(infos[16])
-		utils.JJKPrintln(info.MainTotal,info1.MainTotal,info2.MainTotal,info3.MainTotal)
+		info4 := strToStockInfo(infos[17])
+
+		result = append(result, info, info1, info2, info3, info4)
 	}
-	return nil
+	return result
 }
 
 func strToStockInfo(str string) *models.StockInfo {
