@@ -24,7 +24,7 @@ func (c *MainController) Get() {
 }
 
 func (c *MainController) Index() {
-	database.DB.HelloWorld()
+	database.DB.GetUser()
 	c.TplName = "main.html"
 
 	s := stock.GetStockDayKLine("sz000725",1)

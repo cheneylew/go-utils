@@ -14,7 +14,7 @@ func beegoRun()  {
 }
 
 func main() {
-
+	StockTestMain()
 	beegoRun()
 
 }

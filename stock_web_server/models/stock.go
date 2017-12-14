@@ -2,10 +2,8 @@ package models
 
 import (
 	"time"
-	"reflect"
+	"strings"
 	"fmt"
-	"errors"
-	"github.com/cheneylew/goutil/utils"
 )
 
 type Response struct {
@@ -14,12 +12,70 @@ type Response struct {
 	Data map[string]map[string]interface{}
 }
 
-type KLineDay struct {
+type SortAnalysDayKLins []*AnalysDayKLine
+
+func (a SortAnalysDayKLins) Len() int           { return len(a) }
+func (a SortAnalysDayKLins) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a SortAnalysDayKLins) Less(i, j int) bool {
+	if a[i].RedCount < a[j].RedCount {
+		return true
+	}
+
+	return false
+}
+
+type AnalysDayKLine struct {
+	Stock *Stock
+	Days int64
+	RedCount int64
+	GreenCount int64
+	UpCount int64
+	DownCount int64
+}
+
+
+
+type Stock struct {
+	StockId int64       `orm:"pk"`
+	Code string
+	SyncTime time.Time
+	SyncOk bool
+}
+
+func (s *Stock)CodeStr() string {
+	if strings.HasPrefix(s.Code, "60") {
+		return fmt.Sprintf("sh%s",s.Code)
+	} else if strings.HasPrefix(s.Code, "00") || strings.HasPrefix(s.Code, "30") {
+		return fmt.Sprintf("sz%s",s.Code)
+	}
+
+	return s.Code
+}
+
+type KLine struct {
+	KLineId int64       `orm:"pk"`
+	StockId int64
 	OpeningPrice float64
 	ClosingPrice float64
 	MaxPrice float64
 	MinPrice float64
 	Date time.Time
+	Vol float64 		//万手
+	Type int		//1 日K 2 周K 3月K 4年K
+}
+
+func (k *KLine)IsRed() bool {
+	if k.ClosingPrice >= k.OpeningPrice {
+		return true
+	}
+	return false
+}
+
+func (k *KLine)GetAddRate(last *KLine) float64 {
+	if last == nil {
+		return 0
+	}
+	return (k.ClosingPrice - last.ClosingPrice)/last.ClosingPrice
 }
 
 type StockInfo struct {
@@ -27,38 +83,4 @@ type StockInfo struct {
 	Qt map[string][]string
 	Prec string
 	Version string
-}
-
-
-func (s *StockInfo) FillStruct(m map[string]interface{}) error {
-	for k, v := range m {
-		err := SetField(s, k, v)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func SetField(obj interface{}, name string, value interface{}) error {
-	name = utils.UpperFirstChar(name)
-	structValue := reflect.ValueOf(obj).Elem()
-	structFieldValue := structValue.FieldByName(name)
-
-	if !structFieldValue.IsValid() {
-		return fmt.Errorf("No such field: %s in obj", name)
-	}
-
-	if !structFieldValue.CanSet() {
-		return fmt.Errorf("Cannot set %s field value", name)
-	}
-
-	structFieldType := structFieldValue.Type()
-	val := reflect.ValueOf(value)
-	if structFieldType != val.Type() {
-		return errors.New("Provided value type didn't match obj field type")
-	}
-
-	structFieldValue.Set(val)
-	return nil
 }
