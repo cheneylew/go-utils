@@ -49,3 +49,12 @@ func JKHTMLEscape(str string) string  {
 
 	return strings.TrimSpace(src)
 }
+
+func UpperFirstChar(str string) string {
+	if len(str) > 0 {
+		f := str[:1]
+		return strings.ToUpper(f) + str[1:]
+	}
+
+	return ""
+}

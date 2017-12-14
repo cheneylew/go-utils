@@ -2,6 +2,9 @@ package controllers
 
 import (
 	"github.com/cheneylew/goutil/stock_web_server/database"
+	"github.com/cheneylew/goutil/utils"
+
+	"github.com/cheneylew/goutil/stock_web_server/stock"
 )
 
 type MainController struct {
@@ -23,5 +26,10 @@ func (c *MainController) Get() {
 func (c *MainController) Index() {
 	database.DB.HelloWorld()
 	c.TplName = "main.html"
+
+	s := stock.GetStockDayKLine("sz000725",1)
+	utils.JJKPrintln(s)
+	a,e := database.DB.Orm.Insert(s[0])
+	utils.JJKPrintln(a,e)
 }
 
