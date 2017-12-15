@@ -129,7 +129,10 @@ func UpdateOnlineCodesToDatabase()  {
 	}
 	utils.JJKPrintln("start upload")
 	for _, value := range codeModels {
-		database.DB.Orm.Insert(value)
+		_, err := database.DB.Orm.Insert(value)
+		if err != nil {
+			utils.JJKPrintln(err)
+		}
 	}
 	utils.JJKPrintln("upload finished")
 }
@@ -141,10 +144,6 @@ func GetRealTimeStockInfo(code string) []*models.StockInfo {
 	var result []*models.StockInfo
 	if len(s1) > 0 {
 		infos := strings.Split(strings.Replace(s1[0],`"`,"",-1),"~")
-		for key, value := range infos {
-			utils.JJKPrintln(key, value)
-		}
-
 
 		info := &models.StockInfo{
 			MainIn:utils.ToFloat64(infos[1]),

@@ -8,6 +8,7 @@ import (
 	"github.com/cheneylew/goutil/stock_web_server/models"
 	"fmt"
 	"sort"
+	"math"
 )
 
 var serverKLines []*models.KLine
@@ -16,12 +17,38 @@ func uploadStocksCodeToDB()  {
 	stock.UpdateOnlineCodesToDatabase()
 }
 
+// 增量下载股票的日K
 func downloadDayKLine(code string)  {
 	if len(serverKLines) == 0 {
 		serverKLines = database.DB.GetKLineAll()
 	}
 
 	tmpStock := database.DB.GetStockWithCode(code)
+	//增量计算,防止重复下载同步
+	lastSyncTime := tmpStock.SyncTime
+	secnods := time.Now().Add(-time.Hour*8).Unix() - lastSyncTime.Unix()
+	ly,lm,ld := lastSyncTime.Date()
+	y,m,d := time.Now().Date()
+	isSameDate := false
+	if ly == y && lm == m && ld == d {
+		isSameDate = true
+	}
+
+	days := float64(secnods)/float64(3600*24)
+	if days > 100 || !tmpStock.SyncOk {
+		days = 100
+	} else if days >= 1 && days <= 100 {
+		days = math.Ceil(days)
+	} else {
+		if !isSameDate {
+			days = 1
+		} else {
+			utils.JJKPrintln(fmt.Sprintf("%s have sync!", code))
+			return
+		}
+	}
+
+	//某只股票的K线
 	tmpStockKLines := make([]*models.KLine, 0)
 	for _, value := range serverKLines {
 		if value.StockId == tmpStock.StockId {
@@ -29,9 +56,9 @@ func downloadDayKLine(code string)  {
 		}
 	}
 
-	klines := stock.GetStockDayKLine(tmpStock.CodeStr(),100)
+	klines := stock.GetStockDayKLine(tmpStock.CodeStr(),int64(days))
 	if len(klines) == 0 {
-		tmpStock.SyncTime = time.Now()
+		//tmpStock.SyncTime = time.Now()
 		tmpStock.SyncOk = false
 		database.DB.Orm.Update(tmpStock)
 		utils.JJKPrintln("download failed ", code)
@@ -146,21 +173,34 @@ func analysResultWithCodeAndDays(code string, days int) *models.AnalysDayKLine {
 }
 
 func StockTestMain()  {
+	//uploadStocksCodeToDB()
 	//utils.JJKPrintln(len(database.DB.GetKLineAll()))
 	//downloadSHStockKLines()
 	//downloadSZStockKLines()
 	//downloadFaildStocks()
 	//downloadDayKLine("600196")
+	//stock.GetRealTimeStockInfo("sh600703")
 
 
-	shStocks := database.DB.GetStockWithCodePrefix("60")
-	var all models.SortAnalysDayKLins
-	for _, value := range shStocks {
-		result := analysResultWithCodeAndDays(value.Code,18)
-		all = append(all, result)
+	if true {
+		shStocks := database.DB.GetStockWithCodePrefix("60")
+		var all models.SortAnalysDayKLins
+		for _, value := range shStocks {
+			result := analysResultWithCodeAndDays(value.Code,18)
+			all = append(all, result)
+		}
+		sort.Sort(all)
+
+		result := ""
+		for _, value := range all {
+			utils.JJKPrintln(value.Stock.Code, value.RedCount, value.GreenCount)
+			if value.RedCount + value.GreenCount > 10 {
+				result += fmt.Sprintf("%s %d %d\n", value.Stock.Code, value.RedCount, value.GreenCount)
+			}
+		}
+
+		utils.FileWriteString("/Users/apple/Desktop/a.txt", result)
 	}
-	sort.Sort(all)
-	for _, value := range all {
-		utils.JJKPrintln(value.Stock.Code, value.RedCount, value.GreenCount)
-	}
+
+	utils.JJKPrintln("end")
 }
