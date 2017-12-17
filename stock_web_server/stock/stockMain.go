@@ -256,6 +256,8 @@ func AnalysRedRate(days int) models.SortAnalysDayKLins {
 }
 
 func StockTestMain()  {
+	CronMain()
+
 	//uploadStocksCodeToDB()
 	//utils.JJKPrintln(len(database.DB.GetKLineAll()))
 	//downloadSHStockKLines()

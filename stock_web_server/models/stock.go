@@ -46,8 +46,6 @@ type AnalysDayKLine struct {
 	UpDownRateTotal float64
 }
 
-
-
 type Stock struct {
 	StockId int64       `orm:"pk"`
 	Code string
