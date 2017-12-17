@@ -6,7 +6,6 @@ import (
 	"github.com/cheneylew/goutil/stock_web_server/models"
 	"math"
 	"time"
-
 )
 
 var DB DataBase
@@ -20,8 +19,6 @@ func init() {
 		BaseDataBase:*db,
 	}
 
-	//使用GORM自动维护表结构
-	db.GDB.AutoMigrate(&models.Stock{},&models.KLine{},&models.StockInfo{}, &models.AnalysDayKLine{})
 }
 
 type DataBase struct {

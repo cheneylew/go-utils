@@ -1,12 +1,17 @@
 package stock
 
 import (
-	"log"
 	"github.com/cheneylew/goutil/utils"
 )
 
 func CronMain()  {
-	utils.CronJob("1-10/2 * * * * *", func() {
-		log.Println("ok")
+	//周一到周五，23:00:00执行
+	utils.CronJob("00 00 23 * * 1-5", func() {
+		downloadSHStockKLines()
+		downloadSZStockKLines()
+	})
+	//每天23:00:00执行
+	utils.CronJob("00 00 23 * * ?", func() {
+		uploadStocksCodeToDB()
 	})
 }

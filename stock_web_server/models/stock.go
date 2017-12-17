@@ -51,7 +51,7 @@ type Stock struct {
 	Code string
 	SyncTime time.Time
 	SyncOk bool
-
+	
 	Infos []*StockInfo	`orm:"-"`
 }
 

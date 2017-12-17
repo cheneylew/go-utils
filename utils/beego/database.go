@@ -7,8 +7,6 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/cheneylew/goutil/utils"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 func DBUrl(user, password, host, port, dbName string) string {
@@ -26,22 +24,16 @@ func InitRegistDB(user,pwd,host,port,dbname string) *BaseDataBase {
 		utils.JJKPrintln("========database connected success！========")
 	}
 
-	GDB, err := gorm.Open("mysql",url)
-	if err != nil {
-		utils.JJKPrintln(err)
-	}
-	//表名不加s，gorm默认加s
-	GDB.SingularTable(true)
+	//创建模型表结构
+	orm.RunSyncdb("default",false,true)
 
 	return &BaseDataBase {
 		Orm:orm.NewOrm(),
-		GDB:GDB,
 	}
 }
 
 type BaseDataBase struct {
 	Orm orm.Ormer
-	GDB *gorm.DB
 }
 
 
