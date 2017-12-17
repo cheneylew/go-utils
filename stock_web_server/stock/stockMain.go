@@ -336,6 +336,34 @@ func Analys5MainInStocks() []*models.Stock {
 	return stocks
 }
 
+func Analys5MainOutStocks() []*models.Stock {
+	var stocks []*models.Stock
+	utils.JJKPrintln(len(allStocks))
+	for _, stock := range allStocks {
+		infos := CCGetStockInfoWithStockId(stock.StockId)
+		sort.Slice(infos, func(i, j int) bool {
+			return infos[i].Date.Before(infos[j].Date)
+		})
+
+		if len(infos) == 5 {
+			ok := true
+			for _, info := range infos {
+				if info.MainTotal > -100 {
+					ok = false
+				}
+			}
+
+			klines := CCGetKLinesWithCode(stock.Code,40)
+			up,_,_ := KLineIsUp(klines)
+			if ok && up {
+				stocks = append(stocks, stock)
+			}
+		}
+	}
+
+	return stocks
+}
+
 func StockTestMain()  {
 	CronMain()
 	InitCache()

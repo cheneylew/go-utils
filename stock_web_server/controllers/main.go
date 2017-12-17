@@ -91,5 +91,11 @@ func (c *MainController) MainIn()   {
 	c.TplName = "main.html"
 }
 
+func (c *MainController) MainOut()   {
+	stock.InitCache()
+	stocks := stock.Analys5MainOutStocks()
+	c.Data["Stocks"] = stocks
+	c.TplName = "main.html"
+}
 
 
