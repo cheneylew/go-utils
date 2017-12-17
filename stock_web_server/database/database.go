@@ -6,6 +6,7 @@ import (
 	"github.com/cheneylew/goutil/stock_web_server/models"
 	"math"
 	"time"
+
 )
 
 var DB DataBase
@@ -18,6 +19,9 @@ func init() {
 	DB = DataBase{
 		BaseDataBase:*db,
 	}
+
+	//使用GORM自动维护表结构
+	db.GDB.AutoMigrate(&models.Stock{},&models.KLine{},&models.StockInfo{}, &models.AnalysDayKLine{})
 }
 
 type DataBase struct {
@@ -133,4 +137,27 @@ func (db *DataBase)GetKLineAllForStockCodeAndDays(code string, days int) []*mode
 
 func (db *DataBase)GetUser() *models.User {
 	return nil
+}
+
+func (db *DataBase)GetStockInfoAll() []*models.StockInfo {
+	var objects []*models.StockInfo
+
+	qs := db.Orm.QueryTable("stock_info")
+	_, err := qs.Limit(math.MaxInt32, 0).All(&objects)
+	if err != nil {
+		return nil
+	}
+	return objects
+}
+
+
+func (db *DataBase)GetStockInfoAllForStock(stock *models.Stock) []*models.StockInfo {
+	var objects []*models.StockInfo
+
+	qs := db.Orm.QueryTable("stock_info")
+	_, err := qs.Filter("StockId", stock.StockId).Limit(math.MaxInt32, 0).All(&objects)
+	if err != nil {
+		return nil
+	}
+	return objects
 }

@@ -9,6 +9,8 @@ import (
 	"github.com/cheneylew/goutil/utils"
 	"time"
 	"github.com/cheneylew/goutil/stock_web_server/database"
+	"sort"
+	"math"
 )
 
 const KLineDayUrl = "http://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=kline_dayqfq&param=%s,day,,,%d,qfq&r=0.7273883641103628"
@@ -173,6 +175,65 @@ func strToStockInfo(str string) *models.StockInfo {
 		MainOut:utils.ToFloat64(arr[2]),
 		MainTotal:utils.ToFloat64(arr[1])-utils.ToFloat64(arr[2]),
 	}
+}
+
+func KLineIsUp(klines []*models.KLine) (up bool,upCnt int, downCnt int) {
+	durationDays := 30
+	if len(klines) > durationDays {
+		klines = klines[len(klines)-durationDays:]
+	} else if len(klines) == 0 || len(klines) < 8 {
+		return false, 0, 0
+	}
+
+	//升序排列
+	sortKLines := models.SortKLine{}
+	for _, value := range klines {
+		sortKLines = append(sortKLines, value)
+	}
+	sort.Sort(sortKLines)
+
+	isUp := false
+	var last *models.KLine
+	upcount := 0
+	downCount := 0
+	for _, kline := range sortKLines {
+		if last != nil {
+			if kline.ClosingPrice > last.ClosingPrice {
+				upcount += 1
+			} else {
+				downCount += 1
+			}
+		}
+
+		last = kline
+	}
+
+	parts := 2
+	step := math.Floor(float64(len(sortKLines))/float64(parts))
+	lastIndx := 0
+	lineOk := true
+	for i := 1; i< parts ; i++ {
+		idx := i * int(step)
+		if sortKLines[lastIndx].ClosingPrice > sortKLines[idx].ClosingPrice {
+			lineOk = false
+			break
+		}
+
+		lastIndx = idx
+	}
+
+	firstOne := sortKLines[0]
+	lastOne := sortKLines[len(sortKLines)-1]
+	if sortKLines[lastIndx].ClosingPrice > lastOne.ClosingPrice {
+		lineOk = false
+	}
+	deltaRate := (lastOne.ClosingPrice-firstOne.ClosingPrice)/firstOne.ClosingPrice
+	deltaRate = deltaRate*100;
+	if deltaRate > 6.0 && lineOk {
+		isUp = true
+	}
+
+	return isUp,upcount, downCount
 }
 
 

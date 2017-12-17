@@ -17,10 +17,20 @@ type SortAnalysDayKLins []*AnalysDayKLine
 func (a SortAnalysDayKLins) Len() int           { return len(a) }
 func (a SortAnalysDayKLins) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a SortAnalysDayKLins) Less(i, j int) bool {
-	if a[i].RedCount < a[j].RedCount {
+	if a[i].UpCount > a[j].UpCount {
 		return true
 	}
 
+	return false
+}
+
+type SortKLine []*KLine
+func (a SortKLine) Len() int           { return len(a) }
+func (a SortKLine) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a SortKLine) Less(i, j int) bool {
+	if a[i].Date.Before( a[j].Date) {
+		return true
+	}
 	return false
 }
 
@@ -31,6 +41,9 @@ type AnalysDayKLine struct {
 	GreenCount int64
 	UpCount int64
 	DownCount int64
+	UpRateCount float64
+	DownRateCount float64
+	UpDownRateTotal float64
 }
 
 
@@ -40,9 +53,14 @@ type Stock struct {
 	Code string
 	SyncTime time.Time
 	SyncOk bool
+
+	Infos []*StockInfo	`orm:"-"`
 }
 
 func (s *Stock)CodeStr() string {
+	if s == nil {
+		return ""
+	}
 	if strings.HasPrefix(s.Code, "60") {
 		return fmt.Sprintf("sh%s",s.Code)
 	} else if strings.HasPrefix(s.Code, "00") || strings.HasPrefix(s.Code, "30") {
@@ -60,7 +78,7 @@ type KLine struct {
 	MaxPrice float64
 	MinPrice float64
 	Date time.Time
-	Vol float64 		//万手
+	Vol float64 	//万手
 	Type int		//1 日K 2 周K 3月K 4年K
 }
 
@@ -79,6 +97,8 @@ func (k *KLine)GetAddRate(last *KLine) float64 {
 }
 
 type StockInfo struct {
+	StockInfoId int64 `orm:"pk"`
+	StockId int64
 	MainIn float64
 	MainOut float64
 	MainTotal float64
@@ -87,3 +107,4 @@ type StockInfo struct {
 	RetailTotal float64
 	Date time.Time
 }
+

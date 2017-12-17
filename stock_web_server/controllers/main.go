@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"github.com/cheneylew/goutil/stock_web_server/database"
-	"github.com/cheneylew/goutil/utils"
-
 	"github.com/cheneylew/goutil/stock_web_server/stock"
+	"github.com/cheneylew/goutil/utils"
+	"github.com/cheneylew/goutil/stock_web_server/models"
+	"time"
 )
 
 type MainController struct {
@@ -24,12 +25,61 @@ func (c *MainController) Get() {
 }
 
 func (c *MainController) Index() {
-	database.DB.GetUser()
 	c.TplName = "main.html"
 
-	s := stock.GetStockDayKLine("sz000725",1)
-	utils.JJKPrintln(s)
-	a,e := database.DB.Orm.Insert(s[0])
-	utils.JJKPrintln(a,e)
+	c.Data["Stocks"] = stock.AnalysStockInfo()
+}
+
+func (c *MainController) Test() {
+	c.TplName = "main.html"
+}
+
+func (c *MainController) IsUp() {
+	code := c.GetString("code")
+	klines := database.DB.GetKLineAllForStockCode(code)
+	isUp,_,_ := stock.KLineIsUp(klines)
+	utils.JJKPrintln(isUp)
+	c.TplName = "main.html"
+}
+
+func (c *MainController) Red() {
+	c.TplName = "red.html"
+	days := c.GetString("days", "15")
+
+	results := stock.AnalysRedRate(utils.JKStrToInt(days))
+	var s models.SortAnalysDayKLins
+	for _, value := range results {
+		rate := value.UpDownRateTotal*100
+		value.UpDownRateTotal = rate
+		if  rate > 15 {
+			utils.JJKPrintln(value.UpDownRateTotal*100)
+			s = append(s, value)
+		}
+	}
+
+	c.Data["AnalysDayKLines"] = s
+}
+
+func (c *MainController) MainPower() {
+	c.TplName = "mainpower.html"
+	stocks := stock.AnalysStockInfo()
+
+	c.Data["AnalysDayKLines"] = stocks
+}
+
+func (c *MainController) UpStock()   {
+	stocks := database.DB.GetStockWithCodePrefix("00")
+	stocks = append(stocks, database.DB.GetStockWithCodePrefix("60")...)
+	var ss []*models.Stock
+	for _, value := range stocks {
+		klines := database.DB.GetKLineAllForStockCode(value.Code)
+		up,_,_ := stock.KLineIsUp(klines)
+		if up && klines[len(klines)-1].Date.After(time.Now().Add(-time.Hour*24*3)) {
+			ss = append(ss, value)
+		}
+	}
+
+	c.Data["Stocks"] = ss
+	c.TplName = "main.html"
 }
 
