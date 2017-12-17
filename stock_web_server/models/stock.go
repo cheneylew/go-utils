@@ -47,7 +47,7 @@ type AnalysDayKLine struct {
 }
 
 type Stock struct {
-	StockId int64       `orm:"pk"`
+	StockId int64       `orm:"pk;auto"`
 	Code string
 	SyncTime time.Time
 	SyncOk bool
@@ -69,7 +69,7 @@ func (s *Stock)CodeStr() string {
 }
 
 type KLine struct {
-	KLineId int64       `orm:"pk"`
+	KLineId int64       `orm:"pk;auto"`
 	StockId int64
 	OpeningPrice float64
 	ClosingPrice float64
@@ -81,7 +81,7 @@ type KLine struct {
 }
 
 func (k *KLine)IsRed() bool {
-	if k.ClosingPrice >= k.OpeningPrice {
+	if k.ClosingPrice > k.OpeningPrice {
 		return true
 	}
 	return false
@@ -95,7 +95,7 @@ func (k *KLine)GetAddRate(last *KLine) float64 {
 }
 
 type StockInfo struct {
-	StockInfoId int64 `orm:"pk"`
+	StockInfoId int64 `orm:"pk;auto"`
 	StockId int64
 	MainIn float64
 	MainOut float64

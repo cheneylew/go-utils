@@ -12,6 +12,10 @@ import (
 
 var serverKLines []*models.KLine
 
+func ClearCache()  {
+	serverKLines = serverKLines[:0]
+}
+
 func uploadStocksCodeToDB()  {
 	UpdateOnlineCodesToDatabase()
 }
@@ -103,6 +107,7 @@ func downloadDayKLine(code string)  {
 }
 
 func downloadSHStockKLines()  {
+	ClearCache()
 	shStocks := database.DB.GetStockWithCodePrefix("60")
 	for _, value := range shStocks {
 		downloadDayKLine(value.Code)
@@ -111,6 +116,7 @@ func downloadSHStockKLines()  {
 }
 
 func downloadSZStockKLines()  {
+	ClearCache()
 	shStocks := database.DB.GetStockWithCodePrefix("00")
 	for _, value := range shStocks {
 		downloadDayKLine(value.Code)
@@ -120,6 +126,7 @@ func downloadSZStockKLines()  {
 
 
 func downloadFaildStocks()  {
+	ClearCache()
 	for _, value := range database.DB.GetSyncFailedStocks() {
 		downloadDayKLine(value.Code)
 	}
@@ -129,24 +136,52 @@ func downloadFaildStocks()  {
 }
 
 func downloadStockRealTimeInfo()  {
-	stks := database.DB.GetStockWithCodePrefix("00")
+	stks := allStocks
+	utils.JJKPrintln(len(stks))
 	for _, tmpStk := range stks {
-		code := tmpStk.Code
-		stk := database.DB.GetStockWithCode(code)
-		info := GetRealTimeStockInfo(stk.CodeStr())
-		if len(info) == 0 {
-			utils.JJKPrintln(fmt.Sprintf("%s failed", code))
+		onlineInfos := GetRealTimeStockInfo(tmpStk.CodeStr())
+		dbInfos := CCGetStockInfoWithStockId(tmpStk.StockId)
+		if len(onlineInfos) == 0 {
+			utils.JJKPrintln(fmt.Sprintf("%s failed", tmpStk.Code))
 		} else {
-			utils.JJKPrintln(info)
-			for _, value := range info {
-				value.StockId = stk.StockId
-				_,e := database.DB.Orm.Insert(value)
-				if e != nil {
-					utils.JJKPrintln(e)
+			utils.JJKPrintln(onlineInfos)
+			for _, value := range onlineInfos {
+				//是否已存在
+				isExist := false
+				var existObj *models.StockInfo
+				for _, dbInfo := range dbInfos {
+					if utils.DateEqual(dbInfo.Date.Add(time.Hour*8), value.Date.Add(time.Hour*8)) {
+						isExist = true
+						existObj = value
+						existObj.StockInfoId = dbInfo.StockInfoId
+						existObj.StockId = dbInfo.StockId
+					}
+				}
+				if !isExist {
+					value.StockId = tmpStk.StockId
+					_,e := database.DB.Orm.Insert(value)
+					if e != nil {
+						utils.JJKPrintln(e)
+					} else {
+						utils.JJKPrintln("insert ok!")
+					}
+				} else {
+					utils.JJKPrintln("have existed")
+					if utils.DateEqual(value.Date, time.Now()) {
+						utils.JJKPrintln("today update!")
+						a, err := database.DB.Orm.Update(existObj)
+						if err != nil {
+							utils.JJKPrintln("update main today failed!", err)
+						} else {
+							utils.JJKPrintln("update main today ok!", a)
+						}
+					}
 				}
 			}
 		}
 	}
+
+	InitCache()
 }
 
 func AnalysResultWithCodeAndDays(code string, days int) *models.AnalysDayKLine {
@@ -201,7 +236,7 @@ func AnalysStockInfo() []*models.Stock {
 	stocks = append(stocks, database.DB.GetStockWithCodePrefix("00")...)
 	results := []*models.Stock{}
 	for i:=0; i<len(stocks) ; i++ {
-		infos := database.DB.GetStockInfoAllForStock(stocks[i])
+		infos := CCGetStockInfoWithStockId(stocks[i].StockId)
 		if len(infos) > 0 {
 			stocks[i].Infos = infos
 			ok := false
@@ -255,8 +290,56 @@ func AnalysRedRate(days int) models.SortAnalysDayKLins {
 	return back
 }
 
+func AnalysBuyWhat()  {
+	InitCache()
+	for _, stock := range CCGetStockAll() {
+		kls := CCGetKLinesWithCode(stock.Code, 5)
+		if len(kls) == 5 {
+			if !kls[4].Date.Before(time.Now().Add(-time.Hour*24*3)) {
+				if kls[0].IsRed() && kls[1].IsRed() &&  !kls[2].IsRed() &&  !kls[3].IsRed() &&  !kls[4].IsRed() {
+					if kls[4].ClosingPrice < kls[0].ClosingPrice {
+						rate := kls[4].GetAddRate(kls[3])
+						if rate < -0.02 {
+							utils.JJKPrintln(stock.Code)
+						}
+					}
+				}
+			}
+		}
+	}
+
+}
+
+func Analys5MainInStocks() []*models.Stock {
+	var stocks []*models.Stock
+	utils.JJKPrintln(len(allStocks))
+	for _, stock := range allStocks {
+		infos := CCGetStockInfoWithStockId(stock.StockId)
+		sort.Slice(infos, func(i, j int) bool {
+			return infos[i].Date.Before(infos[j].Date)
+		})
+
+		if len(infos) == 5 {
+			ok := true
+			for _, info := range infos {
+				if info.MainTotal < 100 {
+					ok = false
+				}
+			}
+
+			if ok {
+				stocks = append(stocks, stock)
+			}
+		}
+	}
+
+	return stocks
+}
+
 func StockTestMain()  {
 	CronMain()
+	InitCache()
+	//AnalysBuyWhat()
 
 	//uploadStocksCodeToDB()
 	//utils.JJKPrintln(len(database.DB.GetKLineAll()))
@@ -285,7 +368,6 @@ func StockTestMain()  {
 	//klines := database.DB.GetKLineAllForStockCode("600019")
 	//up,_,_ := KLineIsUp(klines)
 	//utils.JJKPrintln(up)
-
 
 	utils.JJKPrintln("end")
 }

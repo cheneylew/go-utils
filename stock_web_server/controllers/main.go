@@ -21,7 +21,7 @@ func (c *MainController) Finish() {
 }
 
 func (c *MainController) Get() {
-	c.RedirectWithURL("/main/index")
+	c.TplName = "index.html"
 }
 
 func (c *MainController) Index() {
@@ -61,9 +61,10 @@ func (c *MainController) Red() {
 }
 
 func (c *MainController) MainPower() {
+	stock.InitCache()
+
 	c.TplName = "mainpower.html"
 	stocks := stock.AnalysStockInfo()
-
 	c.Data["AnalysDayKLines"] = stocks
 }
 
@@ -82,4 +83,13 @@ func (c *MainController) UpStock()   {
 	c.Data["Stocks"] = ss
 	c.TplName = "main.html"
 }
+
+func (c *MainController) MainIn()   {
+	stock.InitCache()
+	stocks := stock.Analys5MainInStocks()
+	c.Data["Stocks"] = stocks
+	c.TplName = "main.html"
+}
+
+
 
