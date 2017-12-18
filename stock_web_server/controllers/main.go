@@ -99,3 +99,10 @@ func (c *MainController) MainOut()   {
 }
 
 
+func (c *MainController) DownDays()   {
+	stock.InitCache()
+	stocks := stock.AnalysBuyWhat()
+	c.Data["Stocks"] = stocks
+	c.TplName = "main5.html"
+}
+

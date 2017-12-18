@@ -53,6 +53,7 @@ type Stock struct {
 	SyncOk bool
 	
 	Infos []*StockInfo	`orm:"-"`
+	DeltaVal float64
 }
 
 func (s *Stock)CodeStr() string {

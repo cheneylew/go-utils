@@ -290,24 +290,51 @@ func AnalysRedRate(days int) models.SortAnalysDayKLins {
 	return back
 }
 
-func AnalysBuyWhat()  {
+func AnalysBuyWhat() []*models.Stock {
 	InitCache()
+	//for _, stock := range CCGetStockAll() {
+	//	kls := CCGetKLinesWithCode(stock.Code, 5)
+	//	if len(kls) == 5 {
+	//		if !kls[4].Date.Before(time.Now().Add(-time.Hour*24*3)) {
+	//			if kls[0].IsRed() && kls[1].IsRed() &&  !kls[2].IsRed() &&  !kls[3].IsRed() &&  !kls[4].IsRed() {
+	//				if kls[4].ClosingPrice < kls[0].ClosingPrice {
+	//					rate := kls[4].GetAddRate(kls[3])
+	//					if rate < -0.02 {
+	//						utils.JJKPrintln(stock.Code)
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+
+	var stocks []*models.Stock
 	for _, stock := range CCGetStockAll() {
-		kls := CCGetKLinesWithCode(stock.Code, 5)
-		if len(kls) == 5 {
-			if !kls[4].Date.Before(time.Now().Add(-time.Hour*24*3)) {
-				if kls[0].IsRed() && kls[1].IsRed() &&  !kls[2].IsRed() &&  !kls[3].IsRed() &&  !kls[4].IsRed() {
-					if kls[4].ClosingPrice < kls[0].ClosingPrice {
-						rate := kls[4].GetAddRate(kls[3])
-						if rate < -0.02 {
-							utils.JJKPrintln(stock.Code)
-						}
-					}
+		kls := CCGetKLinesWithCode(stock.Code, 6)
+		if len(kls) == 6 {
+			klines := CCGetKLinesWithCode(stock.Code, 20)
+			if len(klines) >= 20 {
+				isUp,_,_ := KLineIsUp(klines[:len(klines)-5])
+				if utils.DateEqual(kls[5].Date.Add(time.Hour*8), time.Now()) && isUp {
+					stock.DeltaVal = (kls[1].ClosingPrice - kls[5].ClosingPrice)/kls[5].ClosingPrice
+					stock.DeltaVal = -stock.DeltaVal * 100
+					stocks = append(stocks, stock)
 				}
 			}
 		}
 	}
 
+	sort.Slice(stocks, func(i, j int) bool {
+		return stocks[i].DeltaVal < stocks[j].DeltaVal
+	})
+
+	s := ""
+	for _, value := range stocks {
+		s += fmt.Sprintf("%s %f\n", value.Code, value.DeltaVal)
+	}
+
+	//utils.FileWriteString("/Users/apple/Desktop/a.txt", s)
+	return stocks
 }
 
 func Analys5MainInStocks() []*models.Stock {
