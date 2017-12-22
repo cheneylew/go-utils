@@ -36,4 +36,13 @@ type BaseDataBase struct {
 	Orm orm.Ormer
 }
 
+func (db *BaseDataBase)DBBaseTableCount(tablename string) int64 {
+	a, err := db.Orm.QueryTable(tablename).Count()
+	if err != nil {
+		return 0
+	}
+
+	return a
+}
+
 

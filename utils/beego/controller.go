@@ -17,6 +17,11 @@ type BBaseController struct {
 	beego.Controller
 }
 
+func (c *BBaseController) Prepare() {
+	c.Controller.Prepare()
+	c.Data["BaseUrl"] = c.Ctx.Request.Host
+}
+
 func (c *BBaseController) IsPost() bool {
 	return c.Ctx.Request.Method == "POST"
 }
