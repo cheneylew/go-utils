@@ -58,3 +58,12 @@ func UpperFirstChar(str string) string {
 
 	return ""
 }
+
+func LowerFirstChar(str string) string {
+	if len(str) > 0 {
+		f := str[:1]
+		return strings.ToLower(f) + str[1:]
+	}
+
+	return ""
+}

@@ -74,6 +74,10 @@ func (c *BBaseController) Path(idx int) string {
 	return ""
 }
 
+func (c *BBaseController) PathInt64(idx int) int64 {
+	return utils.JKStrToInt64(c.Path(idx))
+}
+
 func (c *BBaseController) PathValue() string {
 	return c.Path(2)
 }

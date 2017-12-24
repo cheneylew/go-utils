@@ -6,6 +6,7 @@ import (
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cheneylew/goutil/utils"
+	"database/sql"
 
 )
 
@@ -44,5 +45,63 @@ func (db *BaseDataBase)DBBaseTableCount(tablename string) int64 {
 
 	return a
 }
+
+func (db *BaseDataBase)DBBaseCreateTable(tableName string) error {
+	sql := fmt.Sprintf("CREATE TABLE `%s` (`%s_id` INT UNSIGNED NOT NULL,PRIMARY KEY (`%s_id`));", tableName, tableName, tableName)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseCreateTableWithContentID(tableName string) error {
+	sql := fmt.Sprintf("CREATE TABLE `%s` (`%s_id` INT UNSIGNED NOT NULL,`content_id` INT UNSIGNED NOT NULL,PRIMARY KEY (`%s_id`));", tableName, tableName, tableName)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseExecRawSQL(asql string) (int64, error) {
+	return db.DBBaseExecSQL(asql)
+}
+// insert 		返回num代表插入的ID
+// update, delete 	返回num代表影响的行数
+// create table		返回num为0
+// select		不要使用这个语句
+func (db *BaseDataBase)DBBaseExecSQL(asql string, params ...interface{}) (int64, error) {
+	var res sql.Result
+	var err error
+	if len(params) > 0 {
+		res, err = db.Orm.Raw(asql, params...).Exec()
+	} else {
+		res, err = db.Orm.Raw(asql).Exec()
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	rowid, _ := res.LastInsertId()
+	if rowid > 0 {
+		return rowid, nil
+	}
+
+	num, aerr := res.RowsAffected()
+	if aerr != nil {
+		return 0, aerr
+	}
+
+	if num > 0 {
+		return num, nil
+	}
+
+	return 0, nil
+}
+
 
 
