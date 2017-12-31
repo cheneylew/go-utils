@@ -4,6 +4,9 @@ import (
 	"strconv"
 	"regexp"
 	"strings"
+	"encoding/base64"
+	"html/template"
+	"bytes"
 )
 
 
@@ -66,4 +69,28 @@ func LowerFirstChar(str string) string {
 	}
 
 	return ""
+}
+
+func Base64Encode(str string) string {
+	return base64.StdEncoding.EncodeToString([]byte(str))
+}
+
+func Base64Decode(str string) string {
+	b, _ := base64.StdEncoding.DecodeString(str)
+	return string(b)
+}
+
+func TemplateParams() map[string]interface{} {
+	return make(map[string]interface{}, 0)
+}
+
+func Template(templateStr string, params map[string]interface{}) string {
+	t := template.Must(template.New("tpl").Funcs(template.FuncMap{
+		"Equal":Equal,
+	}).Parse(templateStr))
+
+	buf := bytes.NewBufferString("")
+	t.Execute(buf, params)
+
+	return buf.String()
 }

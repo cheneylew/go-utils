@@ -10,6 +10,19 @@ import (
 
 )
 
+const (
+	DataTypeInt = "INT(11)"
+	DataTypeBigInt = "BIGINT"
+	DataTypeVarChar = "VARCHAR(255)"
+	DataTypeVarCharSize = "VARCHAR(%d)"
+	DataTypeDateTime = "DATETIME"
+	DataTypeDate = "DATE"
+
+	DataTypeUnsigned = "UNSIGNED"
+	DataTypeNotNull = "NOT NULL"
+
+)
+
 func DBUrl(user, password, host, port, dbName string) string {
 	return fmt.Sprintf(`%s:%s@tcp(%s:%s)/%s?charset=utf8`, user, password, host, port, dbName)
 }
@@ -58,6 +71,67 @@ func (db *BaseDataBase)DBBaseCreateTable(tableName string) error {
 
 func (db *BaseDataBase)DBBaseCreateTableWithContentID(tableName string) error {
 	sql := fmt.Sprintf("CREATE TABLE `%s` (`%s_id` INT UNSIGNED NOT NULL,`content_id` INT UNSIGNED NOT NULL,PRIMARY KEY (`%s_id`));", tableName, tableName, tableName)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
+func (db *BaseDataBase)DBBaseUpdateColumn(tableName, oldColumnName, newColumnName, dataType string) error {
+	sql := fmt.Sprintf("ALTER TABLE `%s` CHANGE COLUMN `%s` `%s` %s NOT NULL DEFAULT `` ;", tableName, oldColumnName, newColumnName, dataType)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseDropColumn(tableName, columnName string) error {
+	sql := fmt.Sprintf("ALTER TABLE `%s` DROP COLUMN `%s`;", tableName, columnName)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseAddColumn(tableName, columnName, dataType string) error {
+	sql := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s NOT NULL DEFAULT `` ;", tableName, columnName, dataType)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseAddColumnTinyInt(tableName, columnName string) error {
+	sql := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` TINYINT UNSIGNED NOT NULL DEFAULT 0 ;", tableName, columnName)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseAddColumnVarChar255(tableName, columnName string) error {
+	sql := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` VARCHAR(255) NOT NULL;", tableName, columnName)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseAddColumnVarChar(tableName, columnName string, size int64) error {
+	sql := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` VARCHAR(%d) NOT NULL;", tableName, columnName, size)
 	_, err := db.DBBaseExecRawSQL(sql)
 	if err != nil {
 		return err

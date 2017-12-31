@@ -12,6 +12,14 @@ func ToString(obj interface{}) string {
 	return string(res)
 }
 
+func ToJSONWithSliceString(obj []string) (string, error) {
+	tmp := make([]interface{}, 0)
+	for _, value := range obj {
+		tmp = append(tmp, value)
+	}
+	return ToJSON(tmp)
+}
+
 // ToJSON convert the input to a valid JSON string
 func ToJSON(obj interface{}) (string, error) {
 	res, err := json.Marshal(obj)
