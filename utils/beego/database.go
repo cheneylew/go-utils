@@ -59,8 +59,41 @@ func (db *BaseDataBase)DBBaseTableCount(tablename string) int64 {
 	return a
 }
 
+func (db *BaseDataBase)DBBaseAnyTableSelect(tablename string, start int, count int) ([]orm.Params, error) {
+	var list []orm.Params
+	sql := fmt.Sprintf("SELECT * FROM %s limit %d,%d", tablename, start, count)
+	num, err := db.Orm.Raw(sql).Values(&list)
+	if err == nil && num > 0 {
+		return list, nil
+	}
+
+	return nil, err
+}
+
+func (db *BaseDataBase)DBBaseAnyTableSelectOneRow(tablename string, id int) (orm.Params, error) {
+	var list []orm.Params
+	sql := fmt.Sprintf("SELECT * FROM %s where %s_id=%d", tablename, tablename, id)
+	num, err := db.Orm.Raw(sql).Values(&list)
+	if err == nil && num > 0 {
+		return list[0], nil
+	}
+
+	return nil, err
+}
+
+func (db *BaseDataBase)DBBaseAnyTableSelectOneRowWithContentID(tablename string, content_id int64) (orm.Params, error) {
+	var list []orm.Params
+	sql := fmt.Sprintf("SELECT * FROM %s where %s=%d", tablename, "content_id", content_id)
+	num, err := db.Orm.Raw(sql).Values(&list)
+	if err == nil && num > 0 {
+		return list[0], nil
+	}
+
+	return nil, err
+}
+
 func (db *BaseDataBase)DBBaseCreateTable(tableName string) error {
-	sql := fmt.Sprintf("CREATE TABLE `%s` (`%s_id` INT UNSIGNED NOT NULL,PRIMARY KEY (`%s_id`));", tableName, tableName, tableName)
+	sql := fmt.Sprintf("CREATE TABLE `%s` (`%s_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,PRIMARY KEY (`%s_id`));", tableName, tableName, tableName)
 	_, err := db.DBBaseExecRawSQL(sql)
 	if err != nil {
 		return err
@@ -70,7 +103,7 @@ func (db *BaseDataBase)DBBaseCreateTable(tableName string) error {
 }
 
 func (db *BaseDataBase)DBBaseCreateTableWithContentID(tableName string) error {
-	sql := fmt.Sprintf("CREATE TABLE `%s` (`%s_id` INT UNSIGNED NOT NULL,`content_id` INT UNSIGNED NOT NULL,PRIMARY KEY (`%s_id`));", tableName, tableName, tableName)
+	sql := fmt.Sprintf("CREATE TABLE `%s` (`%s_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,`content_id` INT UNSIGNED NOT NULL,PRIMARY KEY (`%s_id`));", tableName, tableName, tableName)
 	_, err := db.DBBaseExecRawSQL(sql)
 	if err != nil {
 		return err
@@ -79,6 +112,15 @@ func (db *BaseDataBase)DBBaseCreateTableWithContentID(tableName string) error {
 	return nil
 }
 
+func (db *BaseDataBase)DBBaseDropTable(tableName string) error {
+	sql := fmt.Sprintf("DROP TABLE `%s`;", tableName)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (db *BaseDataBase)DBBaseUpdateColumn(tableName, oldColumnName, newColumnName, dataType string) error {
 	sql := fmt.Sprintf("ALTER TABLE `%s` CHANGE COLUMN `%s` `%s` %s NOT NULL DEFAULT `` ;", tableName, oldColumnName, newColumnName, dataType)
