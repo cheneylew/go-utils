@@ -9,6 +9,7 @@ import (
 	"image"
 	"image/png"
 	"image/gif"
+	"path/filepath"
 )
 
 const (
@@ -80,4 +81,10 @@ func ImageThumbnail(orgImagePath string, width uint) (thumbPath string, err erro
 	}
 
 	return thumbnailPath, nil
+}
+
+func ThumbnailPath(rawPath string) string {
+	dir := Dir(rawPath)
+	name := filepath.Base(rawPath)
+	return dir+"/"+"thumbnail_"+name
 }
