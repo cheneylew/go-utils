@@ -14,6 +14,14 @@ func SelfPath() string {
 	return path
 }
 
+// create dir
+func MKDir(dir string) error {
+	if IsExist(dir) {
+		return nil
+	}
+	return os.Mkdir(dir, 0777)
+}
+
 // SelfDir gets compiled executable file directory
 func SelfDir() string {
 	return filepath.Dir(SelfPath())
