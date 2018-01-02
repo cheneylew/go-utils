@@ -142,8 +142,9 @@ func (db *BaseDataBase)DBBaseDropColumn(tableName, columnName string) error {
 	return nil
 }
 
-func (db *BaseDataBase)DBBaseAddColumn(tableName, columnName, dataType string) error {
-	sql := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s NOT NULL DEFAULT `` ;", tableName, columnName, dataType)
+func (db *BaseDataBase)DBBaseAddColumn(tableName, columnName, dataType, defaultValue string) error {
+	sql := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` %s NOT NULL DEFAULT '%s';", tableName, columnName, dataType, defaultValue)
+	utils.JJKPrintln(sql)
 	_, err := db.DBBaseExecRawSQL(sql)
 	if err != nil {
 		return err
@@ -174,6 +175,16 @@ func (db *BaseDataBase)DBBaseAddColumnVarChar255(tableName, columnName string) e
 
 func (db *BaseDataBase)DBBaseAddColumnVarChar(tableName, columnName string, size int64) error {
 	sql := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN `%s` VARCHAR(%d) NOT NULL;", tableName, columnName, size)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseDeleteRow(tableName string, content_id int64) error {
+	sql := fmt.Sprintf("DELETE FROM `%s` WHERE `content_id`='%d';", tableName, content_id)
 	_, err := db.DBBaseExecRawSQL(sql)
 	if err != nil {
 		return err
