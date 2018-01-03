@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"html/template"
 	"bytes"
+	"github.com/astaxie/beego"
 )
 
 
@@ -85,8 +86,12 @@ func TemplateParams() map[string]interface{} {
 }
 
 func Template(templateStr string, params map[string]interface{}) string {
+
 	t := template.Must(template.New("tpl").Funcs(template.FuncMap{
 		"Equal":Equal,
+		"InSlice":InSlice,
+		"ToStr":ToString,
+		"MapGet":beego.MapGet,
 	}).Parse(templateStr))
 
 	buf := bytes.NewBufferString("")
