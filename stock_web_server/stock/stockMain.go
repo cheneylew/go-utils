@@ -396,33 +396,29 @@ func StockTestMain()  {
 	InitCache()
 	//AnalysBuyWhat()
 
-	//uploadStocksCodeToDB()
-	//utils.JJKPrintln(len(database.DB.GetKLineAll()))
-	//downloadSHStockKLines()
-	//downloadSZStockKLines()
-	//downloadFaildStocks()
-	//downloadDayKLine("600196")
-	//stock.GetRealTimeStockInfo("sh600703")
-	//downloadStockRealTimeInfo()
-	
-	//stocks := database.DB.GetStockWithCodePrefix("00")
-	//var ss []*models.Stock
-	//for _, value := range stocks {
-	//	klines := database.DB.GetKLineAllForStockCode(value.Code)
-	//	up,_,_ := KLineIsUp(klines)
-	//	if up && klines[len(klines)-1].Date.After(time.Now().Add(-time.Hour*24*3)) {
-	//		utils.JJKPrintln("====")
-	//		ss = append(ss, value)
-	//	}
-	//}
-	//
-	//for _, value := range ss {
-	//	utils.JJKPrintln(value.Code)
-	//}
+	//uploadStocksCodeToDB()		//同步所有股票代码到数据库
+	//downloadSHStockKLines()		//下载上证所有股票日K
+	//downloadSZStockKLines()		//下载深证所有股票日K
+	//downloadFaildStocks()			//下载失败的股票日K
+	//downloadStockRealTimeInfo()	//五日增减仓数据
 
-	//klines := database.DB.GetKLineAllForStockCode("600019")
-	//up,_,_ := KLineIsUp(klines)
-	//utils.JJKPrintln(up)
+	//分析走势向上的股票
+	if false {
+		stocks := database.DB.GetStockWithCodePrefix("60")
+		var ss []*models.Stock
+		for _, value := range stocks {
+			klines := database.DB.GetKLineAllForStockCode(value.Code)
+			up,_,_ := KLineIsUp(klines)
+			if up && klines[len(klines)-1].Date.After(time.Now().Add(-time.Hour*24*3)) {
+				utils.JJKPrintln(fmt.Sprintf("%s ok", value.Code))
+				ss = append(ss, value)
+			}
+		}
 
-	utils.JJKPrintln("end")
+		for _, value := range ss {
+			utils.JJKPrintln(value.Code)
+		}
+	}
+
+	utils.JJKPrintln("股票分析结束, 启动web服务！")
 }

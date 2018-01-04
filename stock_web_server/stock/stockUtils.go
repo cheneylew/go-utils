@@ -178,7 +178,9 @@ func strToStockInfo(str string) *models.StockInfo {
 }
 
 func KLineIsUp(klines []*models.KLine) (up bool,upCnt int, downCnt int) {
-	durationDays := 30
+	durationDays := 6	//上涨的天数
+	parts := 2			//分为几份
+
 	if len(klines) > durationDays {
 		klines = klines[len(klines)-durationDays:]
 	} else if len(klines) == 0 || len(klines) < 8 {
@@ -208,7 +210,6 @@ func KLineIsUp(klines []*models.KLine) (up bool,upCnt int, downCnt int) {
 		last = kline
 	}
 
-	parts := 2
 	step := math.Floor(float64(len(sortKLines))/float64(parts))
 	lastIndx := 0
 	lineOk := true
