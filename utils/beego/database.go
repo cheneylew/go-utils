@@ -51,12 +51,13 @@ type BaseDataBase struct {
 }
 
 func (db *BaseDataBase)DBBaseTableCount(tablename string) int64 {
-	a, err := db.Orm.QueryTable(tablename).Count()
-	if err != nil {
-		return 0
+	var list []orm.Params
+	sql := fmt.Sprintf("SELECT count(*) as cnt FROM %s", tablename)
+	num, err := db.Orm.Raw(sql).Values(&list)
+	if err == nil && num > 0 {
+		return utils.JKStrToInt64(list[0]["cnt"].(string))
 	}
-
-	return a
+	return 0
 }
 
 func (db *BaseDataBase)DBBaseAnyTableSelect(tablename string, start int, count int) ([]orm.Params, error) {

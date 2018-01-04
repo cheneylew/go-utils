@@ -5,6 +5,7 @@ import (
 	"github.com/cheneylew/goutil/utils"
 	"strings"
 	"net/url"
+	"math"
 )
 
 var SESSTION_KEY_USER string
@@ -86,6 +87,12 @@ func (c *BBaseController) PathValueInt() int {
 	return utils.JKStrToInt(c.Path(2))
 }
 
+func (c *BBaseController) Pagination(count int64, defaultLimit int64) string {
 
+	limit , _ := c.GetInt64("limit", defaultLimit)
+	offset , _ := c.GetInt64("offset", 0)
+	curPageNum := int64(math.Floor(float64(offset)/float64(limit)))+1
+	return utils.Pagination(c.Ctx.Request.RequestURI,curPageNum,limit,count)
+}
 
 
