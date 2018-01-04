@@ -92,6 +92,17 @@ func (db *BaseDataBase)DBBaseAnyTableSelectOneRowWithContentID(tablename string,
 	return nil, err
 }
 
+func (db *BaseDataBase)DBBaseAnyTableSelectOneRowWithID(tablename string, id int64) (orm.Params, error) {
+	var list []orm.Params
+	sql := fmt.Sprintf("SELECT * FROM %s where %s_id=%d", tablename, tablename, id)
+	num, err := db.Orm.Raw(sql).Values(&list)
+	if err == nil && num > 0 {
+		return list[0], nil
+	}
+
+	return nil, err
+}
+
 func (db *BaseDataBase)DBBaseCreateTable(tableName string) error {
 	sql := fmt.Sprintf("CREATE TABLE `%s` (`%s_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,PRIMARY KEY (`%s_id`));", tableName, tableName, tableName)
 	_, err := db.DBBaseExecRawSQL(sql)
@@ -183,8 +194,18 @@ func (db *BaseDataBase)DBBaseAddColumnVarChar(tableName, columnName string, size
 	return nil
 }
 
-func (db *BaseDataBase)DBBaseDeleteRow(tableName string, content_id int64) error {
+func (db *BaseDataBase)DBBaseDeleteRowWithContentId(tableName string, content_id int64) error {
 	sql := fmt.Sprintf("DELETE FROM `%s` WHERE `content_id`='%d';", tableName, content_id)
+	_, err := db.DBBaseExecRawSQL(sql)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *BaseDataBase)DBBaseDeleteRowWithId(tableName string, id int64) error {
+	sql := fmt.Sprintf("DELETE FROM `%s` WHERE `%s_id`='%d';", tableName, tableName, id)
 	_, err := db.DBBaseExecRawSQL(sql)
 	if err != nil {
 		return err
