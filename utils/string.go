@@ -81,6 +81,14 @@ func Base64Decode(str string) string {
 	return string(b)
 }
 
+func TrimChars(str , chars string) string {
+	for _, value := range chars {
+		str = strings.TrimSuffix(strings.TrimPrefix(str,string(value)), string(value))
+	}
+
+	return str
+}
+
 func TemplateParams() map[string]interface{} {
 	return make(map[string]interface{}, 0)
 }

@@ -91,6 +91,28 @@ func (c *MainController) MainIn()   {
 	c.TplName = "main.html"
 }
 
+func (c *MainController) MainInThreedays()   {
+	stock.InitCache()
+	stocks := stock.Analys5MainInGreatThan3DaysStocks()
+	c.Data["Stocks"] = stocks
+	c.TplName = "main.html"
+}
+
+func (c *MainController) MainInTwodays()   {
+	stock.InitCache()
+	stocks := stock.Analys5MainInGreatThan2DaysStocks()
+	c.Data["Stocks"] = stocks
+	c.TplName = "main.html"
+}
+
+func (c *MainController) MainInEqualTwodays()   {
+	stock.InitCache()
+	stocks := stock.Analys5MainInEqual2DaysStocks()
+	c.Data["Stocks"] = stocks
+	c.TplName = "main.html"
+}
+
+
 func (c *MainController) MainOut()   {
 	stock.InitCache()
 	stocks := stock.Analys5MainOutStocks()

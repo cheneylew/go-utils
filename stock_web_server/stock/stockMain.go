@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sort"
 	"math"
+	"strings"
 )
 
 var serverKLines []*models.KLine
@@ -109,27 +110,44 @@ func downloadDayKLine(code string)  {
 func downloadSHStockKLines()  {
 	ClearCache()
 	shStocks := database.DB.GetStockWithCodePrefix("60")
+	var params []interface{}
 	for _, value := range shStocks {
-		downloadDayKLine(value.Code)
+		params = append(params, value)
 	}
+	utils.QueueTask(10, params, func(idx int, param interface{}) {
+		stock := param.(*models.Stock)
+		downloadDayKLine(stock.Code)
+	})
 	utils.JJKPrintln(len(shStocks))
 }
 
 func downloadSZStockKLines()  {
 	ClearCache()
 	shStocks := database.DB.GetStockWithCodePrefix("00")
+	var params []interface{}
 	for _, value := range shStocks {
-		downloadDayKLine(value.Code)
+		params = append(params, value)
 	}
+	utils.QueueTask(10, params, func(idx int, param interface{}) {
+		stock := param.(*models.Stock)
+		downloadDayKLine(stock.Code)
+	})
 	utils.JJKPrintln(len(shStocks))
 }
 
 
 func downloadFaildStocks()  {
 	ClearCache()
-	for _, value := range database.DB.GetSyncFailedStocks() {
-		downloadDayKLine(value.Code)
+	shStocks := database.DB.GetSyncFailedStocks()
+
+	var params []interface{}
+	for _, value := range shStocks {
+		params = append(params, value)
 	}
+	utils.QueueTask(10, params, func(idx int, param interface{}) {
+		stock := param.(*models.Stock)
+		downloadDayKLine(stock.Code)
+	})
 
 	fstocks := database.DB.GetSyncFailedStocks()
 	utils.JJKPrintln(len(fstocks))
@@ -138,7 +156,15 @@ func downloadFaildStocks()  {
 func downloadStockRealTimeInfo()  {
 	stks := allStocks
 	utils.JJKPrintln(len(stks))
-	for _, tmpStk := range stks {
+
+	var params []interface{}
+	for _, value := range stks {
+		params = append(params, value)
+	}
+
+	utils.QueueTask(20, params, func(idx int, param interface{}) {
+		tmpStk := param.(*models.Stock)
+
 		onlineInfos := GetRealTimeStockInfo(tmpStk.CodeStr())
 		dbInfos := CCGetStockInfoWithStockId(tmpStk.StockId)
 		if len(onlineInfos) == 0 {
@@ -179,9 +205,56 @@ func downloadStockRealTimeInfo()  {
 				}
 			}
 		}
-	}
+	})
 
 	InitCache()
+}
+
+func downloadStockInfo()  {
+	stocks := CCGetStockAll()
+	var params []interface{}
+	for _, value := range stocks {
+		params = append(params, value)
+	}
+	utils.QueueTask(10, params, func(idx int, param interface{}) {
+		stock := param.(*models.Stock)
+
+		info := utils.HTTPGet(fmt.Sprintf("http://qt.gtimg.cn/q=%s", stock.CodeStr()))
+		arr := strings.Split(info, "=")
+		if len(arr) == 2 {
+			str := utils.TrimChars(utils.TrimWiteSpace(arr[1]),`;"`)
+			infoArr := strings.Split(str, "~")
+
+			if len(infoArr) <= 48 {
+				return
+			}
+
+			deltaMoney := utils.ToFloat64(infoArr[31]) //涨跌
+			deltaMonyRate := utils.ToFloat64(infoArr[32]) //涨跌%  
+
+			flowAmount := utils.ToFloat64(infoArr[44]) //流通市值
+			totalAmount := utils.ToFloat64(infoArr[45]) //总市值
+			changeHandRate := utils.ToFloat64(infoArr[38]) //换手率
+			PERate := utils.ToFloat64(infoArr[39]) //市盈率 
+			PBRate := utils.ToFloat64(infoArr[46]) //市净率 
+			volAmount := utils.ToFloat64(infoArr[36]) //成交量（手）  
+			volAmountMoney := utils.ToFloat64(infoArr[37]) //成交额（万)
+
+			stock.FlowAmount = flowAmount
+			stock.TotalAmount = totalAmount
+			stock.ChangeHandRate = changeHandRate
+			stock.PERate = PERate
+			stock.PBRate = PBRate
+			stock.VolAmount = volAmount
+			stock.VolAmountMoney = volAmountMoney
+			stock.DeltaMoney = deltaMoney
+			stock.DeltaMoneyRate = deltaMonyRate
+
+
+			database.DB.Orm.Update(stock)
+			utils.JJKPrintln(fmt.Sprintf("%s ok", stock.Code))
+		}
+	})
 }
 
 func AnalysResultWithCodeAndDays(code string, days int) *models.AnalysDayKLine {
@@ -290,6 +363,23 @@ func AnalysRedRate(days int) models.SortAnalysDayKLins {
 	return back
 }
 
+func AnalysUpStock()  {
+	stocks := database.DB.GetStockWithCodePrefix("60")
+	var ss []*models.Stock
+	for _, value := range stocks {
+		klines := database.DB.GetKLineAllForStockCode(value.Code)
+		up,_,_ := KLineIsUp(klines)
+		if up && klines[len(klines)-1].Date.After(time.Now().Add(-time.Hour*24*3)) {
+			utils.JJKPrintln(fmt.Sprintf("%s ok", value.Code))
+			ss = append(ss, value)
+		}
+	}
+
+	for _, value := range ss {
+		utils.JJKPrintln(value.Code)
+	}
+}
+
 func AnalysBuyWhat() []*models.Stock {
 	InitCache()
 	//for _, stock := range CCGetStockAll() {
@@ -363,6 +453,99 @@ func Analys5MainInStocks() []*models.Stock {
 	return stocks
 }
 
+func Analys5MainInGreatThan3DaysStocks() []*models.Stock {
+	var stocks []*models.Stock
+	utils.JJKPrintln(len(allStocks))
+	for _, stock := range allStocks {
+		infos := CCGetStockInfoWithStockId(stock.StockId)
+		sort.Slice(infos, func(i, j int) bool {
+			return infos[i].Date.Before(infos[j].Date)
+		})
+
+		if len(infos) == 5 {
+			ok := false
+			addConnt := 0
+			for _, info := range infos {
+				if info.MainTotal > 100 {
+					addConnt += 1
+				}
+			}
+
+			if addConnt >= 3 {
+				ok = true
+			}
+
+			if ok {
+				stocks = append(stocks, stock)
+			}
+		}
+	}
+
+	return stocks
+}
+
+func Analys5MainInGreatThan2DaysStocks() []*models.Stock {
+	var stocks []*models.Stock
+	utils.JJKPrintln(len(allStocks))
+	for _, stock := range allStocks {
+		infos := CCGetStockInfoWithStockId(stock.StockId)
+		sort.Slice(infos, func(i, j int) bool {
+			return infos[i].Date.Before(infos[j].Date)
+		})
+
+		if len(infos) == 5 {
+			ok := false
+			addConnt := 0
+			for _, info := range infos {
+				if info.MainTotal > 100 {
+					addConnt += 1
+				}
+			}
+
+			if addConnt >= 2 {
+				ok = true
+			}
+
+			if ok {
+				stocks = append(stocks, stock)
+			}
+		}
+	}
+
+	return stocks
+}
+
+func Analys5MainInEqual2DaysStocks() []*models.Stock {
+	var stocks []*models.Stock
+	utils.JJKPrintln(len(allStocks))
+	for _, stock := range allStocks {
+		infos := CCGetStockInfoWithStockId(stock.StockId)
+		sort.Slice(infos, func(i, j int) bool {
+			return infos[i].Date.Before(infos[j].Date)
+		})
+
+		if len(infos) == 5 {
+			ok := false
+			addConnt := 0
+			for _, info := range infos {
+				if info.MainTotal > 100 {
+					addConnt += 1
+				}
+			}
+
+			if addConnt == 2 {
+				ok = true
+			}
+
+			if ok {
+				stocks = append(stocks, stock)
+			}
+		}
+	}
+
+	return stocks
+}
+
 func Analys5MainOutStocks() []*models.Stock {
 	var stocks []*models.Stock
 	utils.JJKPrintln(len(allStocks))
@@ -391,34 +574,19 @@ func Analys5MainOutStocks() []*models.Stock {
 	return stocks
 }
 
-func StockTestMain()  {
+func  StockTestMain()  {
 	CronMain()
 	InitCache()
-	//AnalysBuyWhat()
+	//AnalysBuyWhat()				//分析买什么
+	//Analys5MainInStocks()			//五日增仓
+	//AnalysUpStock()				//分析走势向上的股票
 
 	//uploadStocksCodeToDB()		//同步所有股票代码到数据库
-	//downloadSHStockKLines()		//下载上证所有股票日K
-	//downloadSZStockKLines()		//下载深证所有股票日K
-	//downloadFaildStocks()			//下载失败的股票日K
-	//downloadStockRealTimeInfo()	//五日增减仓数据
-
-	//分析走势向上的股票
-	if false {
-		stocks := database.DB.GetStockWithCodePrefix("60")
-		var ss []*models.Stock
-		for _, value := range stocks {
-			klines := database.DB.GetKLineAllForStockCode(value.Code)
-			up,_,_ := KLineIsUp(klines)
-			if up && klines[len(klines)-1].Date.After(time.Now().Add(-time.Hour*24*3)) {
-				utils.JJKPrintln(fmt.Sprintf("%s ok", value.Code))
-				ss = append(ss, value)
-			}
-		}
-
-		for _, value := range ss {
-			utils.JJKPrintln(value.Code)
-		}
-	}
+	downloadSHStockKLines()		//下载上证所有股票日K
+	downloadSZStockKLines()		//下载深证所有股票日K
+	downloadFaildStocks()			//下载失败的股票日K
+	downloadStockRealTimeInfo()	//五日增减仓数据
+	//downloadStockInfo()			//下载股票信息，总市值等
 
 	utils.JJKPrintln("股票分析结束, 启动web服务！")
 }

@@ -48,20 +48,36 @@ func main() {
 	//s, e := utils.QRCodeDecode("/Users/apple/Desktop/a.png")
 	//utils.JJKPrintln(s,e)
 
-	bm, err := cache.NewCache("memory", `{"interval":60}`)
-	if err != nil {
-		utils.JJKPrintln(err)
-	} else {
-		bm.Put("name","cheneylew",time.Second * 10)
-		ticker := time.NewTicker(time.Second * 1)
-		go func() {
-			for _ = range ticker.C {
-				utils.JJKPrintln(bm.Get("name"))
-			}
-		}()
+	//内存缓存
+	if false {
+		bm, err := cache.NewCache("memory", `{"interval":60}`)
+		if err != nil {
+			utils.JJKPrintln(err)
+		} else {
+			bm.Put("name","cheneylew",time.Second * 10)
+			ticker := time.NewTicker(time.Second * 1)
+			go func() {
+				for _ = range ticker.C {
+					utils.JJKPrintln(bm.Get("name"))
+				}
+			}()
+		}
 	}
 
-	for {
+	//并发任务队列
+	if false {
+		var params []interface{}
+		for i:=0; i< 5; i++ {
+			params = append(params, fmt.Sprintf("params %d", i))
+		}
+
+		utils.QueueTask(2, params, func(idx int, param interface{}) {
+			utils.JJKPrintln(param)
+			time.Sleep(time.Second * 2)
+		})
 
 	}
+
+	utils.JJKPrintln("all task finished!")
+	select {}
 }

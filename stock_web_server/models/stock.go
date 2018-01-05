@@ -48,12 +48,22 @@ type AnalysDayKLine struct {
 
 type Stock struct {
 	StockId int64       `orm:"pk;auto"`
-	Code string
-	SyncTime time.Time
+	Code string			`orm:"unique"`
+	SyncTime time.Time  `orm:"null"`
 	SyncOk bool
 	
 	Infos []*StockInfo	`orm:"-"`
 	DeltaVal float64
+
+	FlowAmount float64 //流通市值
+	TotalAmount float64 //总市值
+	ChangeHandRate float64 //换手率
+	PERate float64 //市盈率 
+	PBRate float64 //市净率 
+	VolAmount float64 //成交量（手）  
+	VolAmountMoney float64 //成交额（万)
+	DeltaMoneyRate float64 //涨跌比例
+	DeltaMoney	float64 //涨跌金额
 }
 
 func (s *Stock)CodeStr() string {
