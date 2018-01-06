@@ -12,9 +12,9 @@ var DB DataBase
 
 func init() {
 	//db := beego.InitRegistDB("cheneylew","12344321","47.91.151.207","3308","stock")
-	//db := beego.InitRegistDB("root","cnldj1988","127.0.0.1","3306","stock")
+	db := beego.InitRegistDB("root","cnldj1988","127.0.0.1","3308","stock")
 	//db := beego.InitRegistDB("root","cnldj1988","127.0.0.1","13306","stock")
-	db := beego.InitRegistSQLiteDB()
+	//db := beego.InitRegistSQLiteDB()
 	db.Orm.Using("default")
 	DB = DataBase{
 		BaseDataBase:*db,
