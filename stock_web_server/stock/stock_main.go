@@ -18,6 +18,7 @@ func ClearCache()  {
 }
 
 func DownloadTaskAll()  {
+	uploadStocksCodeToDB()
 	downloadSHStockKLines()		//下载上证所有股票日K
 	downloadSZStockKLines()		//下载深证所有股票日K
 	downloadFaildStocks()			//下载失败的股票日K
