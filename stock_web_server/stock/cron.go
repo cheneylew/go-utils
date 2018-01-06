@@ -14,5 +14,6 @@ func CronMain()  {
 	//每天23:00:00执行
 	utils.CronJob("00 00 23 * * ?", func() {
 		uploadStocksCodeToDB()
+		downloadStockRealTimeInfo()
 	})
 }

@@ -128,3 +128,8 @@ func (c *MainController) DownDays()   {
 	c.TplName = "main5.html"
 }
 
+func (c *MainController) AllDowloadTask()  {
+	stock.DownloadTaskAll()
+	c.Ctx.WriteString("all task finished!")
+}
+
