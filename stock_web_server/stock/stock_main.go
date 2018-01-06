@@ -586,7 +586,7 @@ func  StockTestMain()  {
 	downloadSZStockKLines()		//下载深证所有股票日K
 	downloadFaildStocks()			//下载失败的股票日K
 	downloadStockRealTimeInfo()	//五日增减仓数据
-	//downloadStockInfo()			//下载股票信息，总市值等
+	downloadStockInfo()			//下载股票信息，总市值等
 
 	utils.JJKPrintln("股票分析结束, 启动web服务！")
 }

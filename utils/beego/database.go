@@ -3,6 +3,7 @@ package beego
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cheneylew/goutil/utils"
@@ -27,10 +28,34 @@ func DBUrl(user, password, host, port, dbName string) string {
 	return fmt.Sprintf(`%s:%s@tcp(%s:%s)/%s?charset=utf8`, user, password, host, port, dbName)
 }
 
+// default is mysql db
 func InitRegistDB(user,pwd,host,port,dbname string) *BaseDataBase {
+
 	url := DBUrl(user,pwd,host,port,dbname)
-	orm.RegisterDriver("mysql", orm.DRMySQL)
+	orm.RegisterDriver("mysql", orm.DRSqlite)
 	err := orm.RegisterDataBase("default", "mysql", url)
+
+	if err != nil {
+		utils.JJKPrintln("========database can't connect! error:" + err.Error()+"========")
+	} else {
+		utils.JJKPrintln("========database connected success！========")
+	}
+
+	//创建模型表结构
+	orm.RunSyncdb("default",false,true)
+
+	return &BaseDataBase {
+		Orm:orm.NewOrm(),
+	}
+}
+
+// sqlite db
+func InitRegistMYSQLDB(user,pwd,host,port,dbname string) *BaseDataBase {
+	return InitRegistDB(user,pwd,host,port,dbname)
+}
+func InitRegistSQLiteDB() *BaseDataBase {
+	//sqlite
+	err := orm.RegisterDataBase("default", "sqlite3", "data.db")
 
 	if err != nil {
 		utils.JJKPrintln("========database can't connect! error:" + err.Error()+"========")

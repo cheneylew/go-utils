@@ -1,4 +1,22 @@
-
+<image src="" style="background-color: #ffffff;width: 90%; height: 100%; position: fixed; top: 0px; left: 10%;" id="preview"></image>
+<br/>
 {{range .Stocks}}
-    <a href="http://image.sinajs.cn/newchart/daily/n/{{.CodeStr}}.gif"> {{.Code}} </a><br/>
+    <div class="stock" style="height: 30px;" ref="http://image.sinajs.cn/newchart/daily/n/{{.CodeStr}}.gif"> {{.Code}} </div>
 {{end}}
+
+<script>
+    $(function () {
+        $(".stock").click(function () {
+            $(this).css("background-color","yellow");
+            $(this).siblings(".stock").css("background-color","white");
+            var url = $(this).attr('ref');
+            $("#preview").attr("src", url);
+        })
+    })
+</script>
+<style>
+    .stock, body {
+        margin: 0;
+        padding: 0;
+    }
+</style>
