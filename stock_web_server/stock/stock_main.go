@@ -17,6 +17,26 @@ func ClearCache()  {
 	serverKLines = serverKLines[:0]
 }
 
+
+func  StockTestMain()  {
+	CronMain()						//定时任务
+	InitCache()
+	//AnalysMACD()
+	//CalculateMACD()				//macd计算
+	//AnalysBuyWhat()				//分析买什么
+	//Analys5MainInStocks()			//五日增仓
+	//AnalysUpStock()				//分析走势向上的股票
+
+	//uploadStocksCodeToDB()		//同步所有股票代码到数据库
+	//downloadSHStockKLines()		//下载上证所有股票日K
+	//downloadSZStockKLines()		//下载深证所有股票日K
+	//downloadFaildStocks()			//下载失败的股票日K
+	//downloadStockRealTimeInfo()	//五日增减仓数据
+	//downloadStockInfo()			//下载股票信息，总市值等
+
+	utils.JJKPrintln("股票分析结束, 启动web服务！")
+}
+
 func DownloadTaskAll()  {
 	uploadStocksCodeToDB()
 	downloadSHStockKLines()		//下载上证所有股票日K
@@ -583,19 +603,35 @@ func Analys5MainOutStocks() []*models.Stock {
 	return stocks
 }
 
-func  StockTestMain()  {
-	CronMain()						//定时任务
-	InitCache()
-	//AnalysBuyWhat()				//分析买什么
-	//Analys5MainInStocks()			//五日增仓
-	//AnalysUpStock()				//分析走势向上的股票
+func AnalysMACD() []*models.Stock {
+	var resStocks []*models.Stock
+	stocks := CCGetStockAll()
+	for _, stock := range stocks {
+		count := 10
+		redDays := 1
+		klines := CCGetKLinesWithCode(stock.Code, count)
+		if len(klines) == count {
+			if klines[0].Ema12 != 0 {
+				leftOk := true
+				rightOk := true
+				for i:=0; i< len(klines); i++ {
+					if i>=(count-redDays) {
+						if klines[i].Bar < 0 {
+							rightOk = false
+						}
+					} else {
+						if klines[i].Bar > 0 {
+							rightOk = false
+						}
+					}
+				}
+				if leftOk && rightOk {
+					utils.JJKPrintln(stock.Code, klines[0].Bar)
+					resStocks = append(resStocks, stock)
+				}
+			}
+		}
+	}
 
-	//uploadStocksCodeToDB()		//同步所有股票代码到数据库
-	//downloadSHStockKLines()		//下载上证所有股票日K
-	//downloadSZStockKLines()		//下载深证所有股票日K
-	//downloadFaildStocks()			//下载失败的股票日K
-	//downloadStockRealTimeInfo()	//五日增减仓数据
-	//downloadStockInfo()			//下载股票信息，总市值等
-
-	utils.JJKPrintln("股票分析结束, 启动web服务！")
+	return resStocks
 }

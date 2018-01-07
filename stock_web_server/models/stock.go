@@ -89,6 +89,13 @@ type KLine struct {
 	Date time.Time
 	Vol float64 	//万手
 	Type int		//1 日K 2 周K 3月K 4年K
+
+	//MACD
+	Ema12 float64
+	Ema26 float64
+	Dif float64
+	Dea float64
+	Bar float64
 }
 
 func (k *KLine)IsRed() bool {

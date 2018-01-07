@@ -4,6 +4,7 @@ import (
 	"github.com/cheneylew/goutil/stock_web_server/models"
 	"github.com/cheneylew/goutil/stock_web_server/database"
 	"sort"
+	"time"
 )
 
 var allKLines []*models.KLine
@@ -67,3 +68,24 @@ func CCGetKLinesWithCode(code string, recentCount int) []*models.KLine {
 	}
 	return kl[len(kl)-recentCount:]
 }
+
+func CCGetKLineWithCodeAndDate(code string, date time.Time ) *models.KLine {
+	var kl []*models.KLine
+	stock := CCGetStock(code)
+	for _, value := range allKLines {
+		if value.StockId == stock.StockId {
+			kl = append(kl, value)
+		}
+	}
+
+	var res *models.KLine
+	for _, value := range kl {
+		if value.Date == date.Add(-time.Hour*8) {
+			res = value
+			break
+		}
+	}
+
+	return res
+}
+

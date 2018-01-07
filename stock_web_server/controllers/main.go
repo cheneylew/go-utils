@@ -140,3 +140,17 @@ func (c *MainController) StockSortByChangeHand()  {
 	c.TplName = "main5.html"
 }
 
+func (c *MainController) MacdGold()   {
+	stock.InitCache()
+	stocks := stock.AnalysMACD()
+	var ps []interface{}
+	for _, value := range stocks {
+		ps = append(ps, value)
+	}
+	c.Data["Stocks"] = utils.Filter(ps, func(i interface{}, i2 int) bool {
+		stock := i.(*models.Stock)
+		return stock.ChangeHandRate > 1.0
+	})
+	c.TplName = "main5.html"
+}
+
