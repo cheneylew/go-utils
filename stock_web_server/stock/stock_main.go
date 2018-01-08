@@ -594,7 +594,7 @@ func AnalysMACD() []*models.Stock {
 	stocks := CCGetStockAll()
 	for _, stock := range stocks {
 		count := 10
-		redDays := 1
+		redDays := 0
 		klines := CCGetKLinesWithCode(stock.Code, count)
 		if len(klines) == count {
 			if klines[0].Ema12 != 0 {
@@ -617,7 +617,7 @@ func AnalysMACD() []*models.Stock {
 						resStocks = append(resStocks, stock)
 					}
 				} else {
-					if klines[len(klines)-1].Bar > - 0.15 && leftOk {
+					if klines[len(klines)-1].Bar >= - 0.1 && leftOk {
 						resStocks = append(resStocks, stock)
 					}
 				}
