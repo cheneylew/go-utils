@@ -19,6 +19,51 @@ func CalculateMACD()  {
 	})
 }
 
+func ReCalculateMACD()  {
+	stocks := CCGetStockAll()
+	var ps []interface{}
+	for _, value := range stocks {
+		ps = append(ps, value)
+	}
+	utils.QueueTask(10, ps, func(idx int, param interface{}) {
+		stock := param.(*models.Stock)
+		calMacdRecent(stock)
+	})
+}
+
+func calMacdRecent(stock *models.Stock)  {
+	klines := CCGetKLinesWithCode(stock.Code, 20)
+	if len(klines) == 0 {
+		return
+	}
+	if klines[0].Ema12 == 0 || klines[0].Ema26 == 0 {
+		//panic("该股票没有计算过MACD，需要重头计算")
+		return
+	}
+
+	var lastKLine *models.KLine
+	for index, kline := range klines {
+		if index == 0 {
+			lastKLine = kline
+		} else {
+			nowEMA12 := lastKLine.Ema12 * 11.0 / 13.0 + kline.ClosingPrice*2.0/13.0
+			nowEMA26 := lastKLine.Ema26 * 25.0 / 27.0 + kline.ClosingPrice*2.0/27.0
+			nowDIF := nowEMA12 - nowEMA26
+			nowDEA := lastKLine.Dea * 8.0 / 10.0 + nowDIF*2.0/10.0
+			nowBAR := 2*(nowDIF - nowDEA)
+
+			kline.Ema12 = nowEMA12
+			kline.Ema26 = nowEMA26
+			kline.Dif = nowDIF
+			kline.Dea = nowDEA
+			kline.Bar = nowBAR
+
+			database.DB.Orm.Update(kline)
+			lastKLine = kline
+		}
+	}
+}
+
 func macd(stock *models.Stock)  {
 	onlineKLines := GetStockDayKLine(stock.CodeStr(), math.MaxInt64)
 

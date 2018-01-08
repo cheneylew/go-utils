@@ -80,7 +80,7 @@ func CCGetKLineWithCodeAndDate(code string, date time.Time ) *models.KLine {
 
 	var res *models.KLine
 	for _, value := range kl {
-		if value.Date == date.Add(-time.Hour*8) {
+		if value.Date == date {
 			res = value
 			break
 		}

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"github.com/jinzhu/now"
 	"github.com/cheneylew/goutil/utils"
-	"time"
 	"github.com/cheneylew/goutil/stock_web_server/database"
 	"sort"
 	"math"
@@ -54,7 +53,6 @@ func GetStockDayKLine(code string, count int64) []*models.KLine {
 				}
 			}
 			date, _ := now.Parse(dayValues[0])
-			date = date.Add(time.Hour *8)
 			s := &models.KLine{
 				Date:date,
 				OpeningPrice:utils.ToFloat64(dayValues[1]),
@@ -98,7 +96,6 @@ func GetStockWeekKLine(code string, count int64) []*models.KLine {
 				}
 			}
 			date, _ := now.Parse(dayValues[0])
-			date = date.Add(time.Hour *8)
 			s := &models.KLine{
 				Date:date,
 				OpeningPrice:utils.ToFloat64(dayValues[1]),

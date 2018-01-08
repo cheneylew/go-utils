@@ -124,3 +124,8 @@ type StockInfo struct {
 	Date time.Time
 }
 
+type Tester struct {
+	TesterID int64 `orm:"pk;auto"`
+	Date time.Time
+}
+

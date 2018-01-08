@@ -6,6 +6,9 @@ import (
 	"github.com/cheneylew/goutil/stock_web_server/models"
 	"math"
 	"time"
+	"fmt"
+	"github.com/astaxie/beego/orm"
+	"github.com/jinzhu/now"
 )
 
 var DB DataBase
@@ -158,4 +161,34 @@ func (db *DataBase)GetStockInfoAllForStock(stock *models.Stock) []*models.StockI
 		return nil
 	}
 	return objects
+}
+
+func (db *DataBase)GetTesterWithID(id int64) *models.Tester {
+	var objects []*models.Tester
+
+	qs := db.Orm.QueryTable("Tester")
+	_, err := qs.Filter("TesterId", id).Limit(math.MaxInt32, 0).All(&objects)
+	if err != nil {
+		return nil
+	}
+	return objects[0]
+}
+
+func (db *DataBase)GetDateOfLastKLineWithStockID(stockId int64) time.Time {
+	var list []orm.Params
+	sql := fmt.Sprintf("SELECT max(date) as lastDate FROM stock.k_line where stock_id=%d;", stockId)
+	num, err := db.Orm.Raw(sql).Values(&list)
+	if err == nil && num > 0 {
+		v, b := list[0]["lastDate"].(string)
+		if b {
+			t, _ := now.Parse(v)
+			return t
+		} else {
+			t, _ := now.Parse("2007-01-01 00:00:00")
+			return t
+		}
+
+	}
+	t, _ := now.Parse("2007-01-01 00:00:00")
+	return t
 }

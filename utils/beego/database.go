@@ -9,6 +9,7 @@ import (
 	"github.com/cheneylew/goutil/utils"
 	"database/sql"
 
+	"net/url"
 )
 
 const (
@@ -25,7 +26,7 @@ const (
 )
 
 func DBUrl(user, password, host, port, dbName string) string {
-	return fmt.Sprintf(`%s:%s@tcp(%s:%s)/%s?charset=utf8`, user, password, host, port, dbName)
+	return fmt.Sprintf(`%s:%s@tcp(%s:%s)/%s?charset=utf8&loc=%s`, user, password, host, port, dbName, url.QueryEscape("Asia/shanghai"))
 }
 
 // default is mysql db
@@ -33,6 +34,7 @@ func InitRegistDB(user,pwd,host,port,dbname string) *BaseDataBase {
 
 	url := DBUrl(user,pwd,host,port,dbname)
 	orm.RegisterDriver("mysql", orm.DRSqlite)
+	//orm.DefaultTimeLoc = time.UTC
 	err := orm.RegisterDataBase("default", "mysql", url)
 
 	if err != nil {

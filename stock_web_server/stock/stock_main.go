@@ -23,6 +23,7 @@ func  StockTestMain()  {
 	InitCache()
 	//AnalysMACD()
 	//CalculateMACD()				//macd计算
+	//ReCalculateMACD()				//根据已经计算过的macd，再次计算新增的
 	//AnalysBuyWhat()				//分析买什么
 	//Analys5MainInStocks()			//五日增仓
 	//AnalysUpStock()				//分析走势向上的股票
@@ -34,6 +35,11 @@ func  StockTestMain()  {
 	//downloadStockRealTimeInfo()	//五日增减仓数据
 	//downloadStockInfo()			//下载股票信息，总市值等
 
+	//date := database.DB.GetDateOfLastKLineWithStockID(588)
+	//utils.JJKPrintln(date)
+
+
+	//downloadDayKLine("600000")	//单独下载某只股票
 	utils.JJKPrintln("股票分析结束, 启动web服务！")
 }
 
@@ -58,24 +64,22 @@ func downloadDayKLine(code string)  {
 
 	tmpStock := database.DB.GetStockWithCode(code)
 	//增量计算,防止重复下载同步
-	lastSyncTime := tmpStock.SyncTime
-	secnods := time.Now().Add(-time.Hour*8).Unix() - lastSyncTime.Unix()
-	ly,lm,ld := lastSyncTime.Date()
-	y,m,d := time.Now().Date()
-	isSameDate := false
-	if ly == y && lm == m && ld == d {
-		isSameDate = true
-	}
+	lastSyncTime := database.DB.GetDateOfLastKLineWithStockID(tmpStock.StockId)
+	deltaSecnods := time.Now().Unix() - lastSyncTime.Unix()
 
-	days := float64(secnods)/float64(3600*24)
-	if days > 100 || !tmpStock.SyncOk {
-		days = 100
-	} else if days >= 1 && days <= 100 {
-		days = math.Ceil(days)
-	} else {
-		if !isSameDate {
-			days = 1
-		} else {
+	deltaDays := float64(deltaSecnods)/float64(3600*24)
+	utils.JJKPrintln(deltaDays)
+	var defaultDays float64 = 100
+	if deltaDays > defaultDays {	// > 100天
+		deltaDays = defaultDays
+	} else if deltaDays >= 1 && deltaDays <= defaultDays {// [1,100]天
+		deltaDays = math.Ceil(deltaDays)
+	} else { // < 1天
+		//是否为今天
+		isDateEqual := utils.DateEqual(lastSyncTime, time.Now())
+		if isDateEqual { //当天需要再次同步一下
+			deltaDays = 1
+		} else {	//非当天同步一次即可
 			utils.JJKPrintln(fmt.Sprintf("%s have sync!", code))
 			return
 		}
@@ -89,7 +93,7 @@ func downloadDayKLine(code string)  {
 		}
 	}
 
-	klines := GetStockDayKLine(tmpStock.CodeStr(),int64(days))
+	klines := GetStockDayKLine(tmpStock.CodeStr(),int64(deltaDays))
 	if len(klines) == 0 {
 		//tmpStock.SyncTime = time.Now()
 		tmpStock.SyncOk = false
@@ -102,7 +106,7 @@ func downloadDayKLine(code string)  {
 
 		isExist := false
 		for _, sKLine := range tmpStockKLines {
-			if sKLine.StockId == kline.StockId && sKLine.Date == kline.Date.Add(-time.Hour * 8) {
+			if sKLine.StockId == kline.StockId && sKLine.Date == kline.Date {
 				isExist = true
 				kline.KLineId = sKLine.KLineId
 			}
@@ -122,8 +126,6 @@ func downloadDayKLine(code string)  {
 				} else {
 					utils.JJKPrintln("update kline today ok!", a)
 				}
-
-
 			}
 		}
 
@@ -205,7 +207,7 @@ func downloadStockRealTimeInfo()  {
 				isExist := false
 				var existObj *models.StockInfo
 				for _, dbInfo := range dbInfos {
-					if utils.DateEqual(dbInfo.Date.Add(time.Hour*8), value.Date.Add(time.Hour*8)) {
+					if utils.DateEqual(dbInfo.Date, value.Date) {
 						isExist = true
 						existObj = value
 						existObj.StockInfoId = dbInfo.StockInfoId
@@ -411,21 +413,6 @@ func AnalysUpStock()  {
 
 func AnalysBuyWhat() []*models.Stock {
 	InitCache()
-	//for _, stock := range CCGetStockAll() {
-	//	kls := CCGetKLinesWithCode(stock.Code, 5)
-	//	if len(kls) == 5 {
-	//		if !kls[4].Date.Before(time.Now().Add(-time.Hour*24*3)) {
-	//			if kls[0].IsRed() && kls[1].IsRed() &&  !kls[2].IsRed() &&  !kls[3].IsRed() &&  !kls[4].IsRed() {
-	//				if kls[4].ClosingPrice < kls[0].ClosingPrice {
-	//					rate := kls[4].GetAddRate(kls[3])
-	//					if rate < -0.02 {
-	//						utils.JJKPrintln(stock.Code)
-	//					}
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
 
 	var stocks []*models.Stock
 	for _, stock := range CCGetStockAll() {
@@ -434,7 +421,7 @@ func AnalysBuyWhat() []*models.Stock {
 			klines := CCGetKLinesWithCode(stock.Code, 20)
 			if len(klines) >= 20 {
 				isUp,_,_ := KLineIsUp(klines[:len(klines)-5])
-				if utils.DateEqual(kls[5].Date.Add(time.Hour*8), time.Now()) && isUp {
+				if utils.DateEqual(kls[5].Date, time.Now()) && isUp {
 					stock.DeltaVal = (kls[1].ClosingPrice - kls[5].ClosingPrice)/kls[5].ClosingPrice
 					stock.DeltaVal = -stock.DeltaVal * 100
 					stocks = append(stocks, stock)
