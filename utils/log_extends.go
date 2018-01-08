@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"encoding/json"
+	"github.com/astaxie/beego/logs"
 )
 
 func Log(a ...interface{})  {
@@ -11,7 +12,8 @@ func Log(a ...interface{})  {
 }
 
 func JJKPrintln(a ...interface{})  {
-	Log(a...)
+	loger := logs.GetLogger("")
+	loger.Output(3, fmt.Sprintln(a...))
 }
 
 func Println(a ...interface{})  {

@@ -38,7 +38,6 @@ func  StockTestMain()  {
 	//date := database.DB.GetDateOfLastKLineWithStockID(588)
 	//utils.JJKPrintln(date)
 
-
 	//downloadDayKLine("600000")	//单独下载某只股票
 	utils.JJKPrintln("股票分析结束, 启动web服务！")
 }
