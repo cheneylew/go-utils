@@ -149,7 +149,7 @@ func (c *MainController) MacdGold()   {
 	}
 	c.Data["Stocks"] = utils.Filter(ps, func(i interface{}, i2 int) bool {
 		stock := i.(*models.Stock)
-		return stock.ChangeHandRate > 1.0
+		return stock.ChangeHandRate > 3.0
 	})
 	c.TplName = "main5.html"
 }
