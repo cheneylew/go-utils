@@ -6,6 +6,7 @@ import (
 	"github.com/cheneylew/goutil/utils"
 	"github.com/cheneylew/goutil/stock_web_server/models"
 	"time"
+	"sort"
 )
 
 type MainController struct {
@@ -147,10 +148,17 @@ func (c *MainController) MacdGold()   {
 	for _, value := range stocks {
 		ps = append(ps, value)
 	}
-	c.Data["Stocks"] = utils.Filter(ps, func(i interface{}, i2 int) bool {
+
+	newStocks := utils.Filter(ps, func(i interface{}, i2 int) bool {
 		stock := i.(*models.Stock)
-		return stock.ChangeHandRate > 3.0
+		return stock.ChangeHandRate > 2.0
 	})
+
+	sort.Slice(newStocks, func(i, j int) bool {
+		return newStocks[i].(*models.Stock).ChangeHandRate > newStocks[j].(*models.Stock).ChangeHandRate
+	})
+
+	c.Data["Stocks"] = newStocks
 	c.TplName = "main5.html"
 }
 
