@@ -151,11 +151,11 @@ func (c *MainController) MacdGold()   {
 
 	newStocks := utils.Filter(ps, func(i interface{}, i2 int) bool {
 		stock := i.(*models.Stock)
-		return stock.ChangeHandRate > 2.0
+		return stock.ChangeHandRate > 3.0
 	})
 
 	sort.Slice(newStocks, func(i, j int) bool {
-		return newStocks[i].(*models.Stock).ChangeHandRate > newStocks[j].(*models.Stock).ChangeHandRate
+		return newStocks[i].(*models.Stock).GreenBarCount < newStocks[j].(*models.Stock).GreenBarCount
 	})
 
 	c.Data["Stocks"] = newStocks

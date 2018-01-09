@@ -1,7 +1,7 @@
 <image src="" style="background-color: #ffffff;width: 80%; height: 100%; position: fixed; top: 0px; left: 20%;" id="preview"></image>
 <br/>
 {{range .Stocks}}
-<div class="stock" style="height: 30px;" ref="http://image.sinajs.cn/newchart/daily/n/{{.CodeStr}}.gif"> {{.Code}}~{{.ChangeHandRate}}~{{.DeltaVal}}</div>
+<div class="stock" style="height: 30px;" ref="http://image.sinajs.cn/newchart/daily/n/{{.CodeStr}}.gif"> {{.Code}}~{{.ChangeHandRate}}~{{.GreenBarCount}}</div>
 {{end}}
 
 <script>

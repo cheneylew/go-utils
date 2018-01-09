@@ -64,6 +64,9 @@ type Stock struct {
 	VolAmountMoney float64 //成交额（万)
 	DeltaMoneyRate float64 //涨跌比例
 	DeltaMoney	float64 //涨跌金额
+
+	RedBarCount	float64  `orm:"-"` //macd 红色柱子总和
+	GreenBarCount	float64  `orm:"-"` //macd 绿色柱子总和
 }
 
 func (s *Stock)CodeStr() string {

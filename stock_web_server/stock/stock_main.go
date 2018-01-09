@@ -600,24 +600,37 @@ func AnalysMACD() []*models.Stock {
 			if klines[0].Ema12 != 0 {
 				leftOk := true
 				rightOk := true
+				greenBarCount := 0.0
+				redBarCount := 0.0
 				for i:=0; i< len(klines); i++ {
 					if i>=(count-redDays) {
 						if klines[i].Bar < 0 {
 							rightOk = false
+						} else {
+							redBarCount += klines[i].Bar
 						}
 					} else {
 						if klines[i].Bar > 0 {
 							leftOk = false
+						} else {
+							greenBarCount += klines[i].Bar
 						}
 					}
 				}
 				if redDays > 0 {
 					if leftOk && rightOk {
+						stock.RedBarCount = redBarCount
+						stock.GreenBarCount = greenBarCount
+
 						utils.JJKPrintln(stock.Code, klines[0].Bar)
 						resStocks = append(resStocks, stock)
 					}
 				} else {
-					if klines[len(klines)-1].Bar >= - 0.1 && leftOk {
+					isDesc :=  klines[len(klines)-1].Bar >=  klines[len(klines)-2].Bar
+					if klines[len(klines)-2].Bar >= - 1 && leftOk && isDesc {
+						stock.RedBarCount = redBarCount
+						stock.GreenBarCount = greenBarCount
+
 						resStocks = append(resStocks, stock)
 					}
 				}
