@@ -32,7 +32,7 @@ func (c *MainController) Index() {
 }
 
 func (c *MainController) Test() {
-	c.TplName = "main.html"
+	c.Ctx.WriteString("hello world")
 }
 
 func (c *MainController) IsUp() {
@@ -143,7 +143,7 @@ func (c *MainController) StockSortByChangeHand()  {
 
 func (c *MainController) MacdGold()   {
 	stock.InitCache()
-	stocks := stock.AnalysMACD()
+	stocks := stock.AnalysMACD(0)
 	var ps []interface{}
 	for _, value := range stocks {
 		ps = append(ps, value)
@@ -151,11 +151,12 @@ func (c *MainController) MacdGold()   {
 
 	newStocks := utils.Filter(ps, func(i interface{}, i2 int) bool {
 		stock := i.(*models.Stock)
-		return stock.ChangeHandRate > 3.0
+		return stock.ChangeHandRate > 1.0
 	})
 
 	sort.Slice(newStocks, func(i, j int) bool {
-		return newStocks[i].(*models.Stock).GreenBarCount < newStocks[j].(*models.Stock).GreenBarCount
+		//return newStocks[i].(*models.Stock).GreenBarCount < newStocks[j].(*models.Stock).GreenBarCount
+		return newStocks[i].(*models.Stock).ChangeHandRate > newStocks[j].(*models.Stock).ChangeHandRate
 	})
 
 	c.Data["Stocks"] = newStocks

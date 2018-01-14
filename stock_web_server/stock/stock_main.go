@@ -21,12 +21,6 @@ func ClearCache()  {
 func  StockTestMain()  {
 	CronMain()						//定时任务
 	InitCache()
-	//AnalysMACD()
-	//CalculateMACD()				//macd计算
-	//ReCalculateMACD()				//根据已经计算过的macd，再次计算新增的
-	//AnalysBuyWhat()				//分析买什么
-	//Analys5MainInStocks()			//五日增仓
-	//AnalysUpStock()				//分析走势向上的股票
 
 	//uploadStocksCodeToDB()		//同步所有股票代码到数据库
 	//downloadSHStockKLines()		//下载上证所有股票日K
@@ -34,6 +28,13 @@ func  StockTestMain()  {
 	//downloadFaildStocks()			//下载失败的股票日K
 	//downloadStockRealTimeInfo()	//五日增减仓数据
 	//downloadStockInfo()			//下载股票信息，总市值等
+
+	//AnalysMACD()
+	//CalculateMACD()				//macd计算
+	//ReCalculateMACD()				//根据已经计算过的macd，再次计算新增的
+	//AnalysBuyWhat()				//分析买什么
+	//Analys5MainInStocks()			//五日增仓
+	//AnalysUpStock()				//分析走势向上的股票
 
 	//date := database.DB.GetDateOfLastKLineWithStockID(588)
 	//utils.JJKPrintln(date)
@@ -589,12 +590,12 @@ func Analys5MainOutStocks() []*models.Stock {
 	return stocks
 }
 
-func AnalysMACD() []*models.Stock {
+func AnalysMACD(redCount int) []*models.Stock {
 	var resStocks []*models.Stock
 	stocks := CCGetStockAll()
 	for _, stock := range stocks {
-		count := 10
-		redDays := 0
+		count := 6
+		redDays := redCount
 		klines := CCGetKLinesWithCode(stock.Code, count)
 		if len(klines) == count {
 			if klines[0].Ema12 != 0 {
@@ -626,8 +627,14 @@ func AnalysMACD() []*models.Stock {
 						resStocks = append(resStocks, stock)
 					}
 				} else {
-					isDesc :=  klines[len(klines)-1].Bar >=  klines[len(klines)-2].Bar
-					if klines[len(klines)-2].Bar >= - 1 && leftOk && isDesc {
+					abs := math.Abs(klines[len(klines)-1].Bar -  klines[len(klines)-2].Bar)
+					lastOne := klines[len(klines)-1]
+					lastOneOk := lastOne.Bar >= - 100
+					max := 0.02
+					if lastOne.Bar >= 1 {
+						max = math.Abs(lastOne.Bar)*0.01
+					}
+					if lastOneOk && leftOk && abs <= max {
 						stock.RedBarCount = redBarCount
 						stock.GreenBarCount = greenBarCount
 
@@ -638,5 +645,22 @@ func AnalysMACD() []*models.Stock {
 		}
 	}
 
-	return resStocks
+	//5日增仓情况筛选,至少有两天增仓
+	var filterStocks []*models.Stock
+	for _, stock := range resStocks {
+		var stockinfos []*models.StockInfo
+		database.DB.Orm.Raw("SELECT * FROM stock.stock_info where stock_id = ? order by date asc limit 0, 5;", stock.StockId).QueryRows(&stockinfos)
+		addCount := 0
+		for _, info := range stockinfos {
+			if info.MainTotal > 100 {
+				addCount += 1
+			}
+		}
+		//5天中有2天增仓
+		if addCount >= 1 {
+			filterStocks = append(filterStocks, stock)
+		}
+	}
+
+	return filterStocks
 }

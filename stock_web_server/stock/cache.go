@@ -36,6 +36,10 @@ func CCGetStockInfoWithStockId(stockId int64) []*models.StockInfo {
 		}
 	}
 
+	sort.Slice(infos, func(i, j int) bool {
+		return infos[i].Date.Before(infos[j].Date)
+	})
+
 	return infos
 }
 
