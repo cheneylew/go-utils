@@ -9,14 +9,22 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/orm"
 	"github.com/jinzhu/now"
+	"github.com/astaxie/beego/config"
 )
 
 var DB DataBase
 
 func init() {
+	iniconf, _ := config.NewConfig("ini", "conf/app.conf")
+	dbuser := iniconf.String("dbuser")
+	dbpassword := iniconf.String("dbpassword")
+	dbhost := iniconf.String("dbhost")
+	dbport := iniconf.String("dbport")
+	dbname := iniconf.String("dbname")
+
 	//db := beego.InitRegistDB("cheneylew","12344321","47.91.151.207","3308","stock")
 	//db := beego.InitRegistDB("root","cnldj1988","127.0.0.1","3308","stock")
-	db := beego.InitRegistDB("root","cnldj1988","127.0.0.1","3308","stock")
+	db := beego.InitRegistDB(dbuser,dbpassword,dbhost,dbport,dbname)
 	//db := beego.InitRegistSQLiteDB()
 	db.Orm.Using("default")
 	DB = DataBase{
