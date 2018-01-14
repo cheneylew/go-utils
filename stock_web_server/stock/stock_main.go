@@ -43,12 +43,16 @@ func  StockTestMain()  {
 }
 
 func DownloadTaskAll()  {
+	InitCache()
+
 	uploadStocksCodeToDB()
 	downloadSHStockKLines()		//下载上证所有股票日K
 	downloadSZStockKLines()		//下载深证所有股票日K
-	downloadFaildStocks()			//下载失败的股票日K
+	//downloadFaildStocks()			//下载失败的股票日K
 	downloadStockRealTimeInfo()	//五日增减仓数据
 	downloadStockInfo()			//下载股票信息，总市值等
+
+	CalculateMACD()
 }
 
 func uploadStocksCodeToDB()  {
@@ -192,7 +196,7 @@ func downloadStockRealTimeInfo()  {
 		params = append(params, value)
 	}
 
-	utils.QueueTask(20, params, func(idx int, param interface{}) {
+	utils.QueueTask(10, params, func(idx int, param interface{}) {
 		tmpStk := param.(*models.Stock)
 
 		onlineInfos := GetRealTimeStockInfo(tmpStk.CodeStr())
@@ -200,7 +204,6 @@ func downloadStockRealTimeInfo()  {
 		if len(onlineInfos) == 0 {
 			utils.JJKPrintln(fmt.Sprintf("%s failed", tmpStk.Code))
 		} else {
-			utils.JJKPrintln(onlineInfos)
 			for _, value := range onlineInfos {
 				//是否已存在
 				isExist := false
@@ -219,17 +222,17 @@ func downloadStockRealTimeInfo()  {
 					if e != nil {
 						utils.JJKPrintln(e)
 					} else {
-						utils.JJKPrintln("insert ok!")
+						utils.JJKPrintln(fmt.Sprintf("%s %s insert ok!", tmpStk.Code, value.Date))
 					}
 				} else {
-					utils.JJKPrintln("have existed")
+					utils.JJKPrintln(fmt.Sprintf("%s %s have existed", tmpStk.Code, value.Date))
 					if utils.DateEqual(value.Date, time.Now()) {
 						utils.JJKPrintln("today update!")
 						a, err := database.DB.Orm.Update(existObj)
 						if err != nil {
-							utils.JJKPrintln("update main today failed!", err)
+							utils.JJKPrintln("%s %s update main today failed!", tmpStk.Code, value.Date, err)
 						} else {
-							utils.JJKPrintln("update main today ok!", a)
+							utils.JJKPrintln("%s %s update main today ok!", tmpStk.Code, value.Date, a)
 						}
 					}
 				}
