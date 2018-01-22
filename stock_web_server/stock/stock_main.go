@@ -49,11 +49,24 @@ func DownloadTaskAll()  {
 	uploadStocksCodeToDB()
 	downloadSHStockKLines()		//下载上证所有股票日K
 	downloadSZStockKLines()		//下载深证所有股票日K
-	//downloadFaildStocks()			//下载失败的股票日K
+	////downloadFaildStocks()			//下载失败的股票日K
 	downloadStockRealTimeInfo()	//五日增减仓数据
 	downloadStockInfo()			//下载股票信息，总市值等
 
 	CalculateMACD()
+}
+
+func DownloadTaskAddKLines()  {
+	InitCache()
+
+	//uploadStocksCodeToDB()
+	downloadSHStockKLines()		//下载上证所有股票日K
+	downloadSZStockKLines()		//下载深证所有股票日K
+	////downloadFaildStocks()			//下载失败的股票日K
+	downloadStockRealTimeInfo()	//五日增减仓数据
+	downloadStockInfo()			//下载股票信息，总市值等
+
+	ReCalculateMACD()
 }
 
 func uploadStocksCodeToDB()  {

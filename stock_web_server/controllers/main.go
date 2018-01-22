@@ -134,6 +134,11 @@ func (c *MainController) AllDowloadTask()  {
 	c.Ctx.WriteString("all task finished!")
 }
 
+func (c *MainController) AllDowloadTaskAdds()  {
+	stock.DownloadTaskAddKLines()
+	c.Ctx.WriteString("all task finished!")
+}
+
 func (c *MainController) StockSortByChangeHand()  {
 	var stocks []*models.Stock
 	database.DB.Orm.Raw("SELECT * FROM stock.stock where flow_amount > 100 and change_hand_rate > 3.0 order by change_hand_rate desc limit 0, 10000;").QueryRows(&stocks)
