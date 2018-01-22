@@ -51,3 +51,11 @@ func QueueTask(maxConcurrenceCount int, params []interface{}, taskFunc QueueTask
 	}
 }
 
+func QueueTaskWithAll(maxConcurrenceCount, totalCount int, taskFunc QueueTaskFunc) {
+	var params []interface{}
+	for i:=0; i < totalCount; i++ {
+		params = append(params, i)
+	}
+	QueueTask(maxConcurrenceCount, params, taskFunc)
+}
+
