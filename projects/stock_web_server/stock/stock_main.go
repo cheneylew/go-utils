@@ -21,6 +21,7 @@ func ClearCache()  {
 func  StockTestMain()  {
 	CronMain()						//定时任务
 	InitCache()
+	//DownloadTaskAddKLines()		//同步增量数据
 
 	//uploadStocksCodeToDB()		//同步所有股票代码到数据库
 	//downloadSHStockKLines()		//下载上证所有股票日K
@@ -679,4 +680,19 @@ func AnalysMACD(redCount int) []*models.Stock {
 	}
 
 	return filterStocks
+}
+
+func AnalysNewStocks() []*models.Stock  {
+
+	lessThanDays := 50
+	var resStocks []*models.Stock
+	stocks := CCGetStockAll()
+	for _, stock := range stocks {
+		klines := CCGetKLinesWithCode(stock.Code,lessThanDays+10)
+		if len(klines) < lessThanDays && len(klines) != 0 {
+			resStocks = append(resStocks, stock)
+		}
+	}
+
+	return resStocks
 }

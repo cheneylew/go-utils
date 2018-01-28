@@ -168,3 +168,15 @@ func (c *MainController) MacdGold()   {
 	c.TplName = "main5.html"
 }
 
+func (c *MainController) AnalysNewStocks()  {
+	stock.InitCache()
+
+	newStocks := stock.AnalysNewStocks()
+	sort.Slice(newStocks, func(i, j int) bool {
+		//return newStocks[i].(*models.Stock).GreenBarCount < newStocks[j].(*models.Stock).GreenBarCount
+		return newStocks[i].ChangeHandRate > newStocks[j].ChangeHandRate
+	})
+	c.Data["Stocks"] = newStocks
+	c.TplName = "main5.html"
+}
+

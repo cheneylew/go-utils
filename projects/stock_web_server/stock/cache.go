@@ -68,8 +68,9 @@ func CCGetKLinesWithCode(code string, recentCount int) []*models.KLine {
 	})
 
 	if len(kl) < recentCount {
-		return nil
+		return kl
 	}
+
 	return kl[len(kl)-recentCount:]
 }
 
