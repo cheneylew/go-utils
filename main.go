@@ -78,6 +78,9 @@ func main() {
 
 	}
 
+	json := utils.HTTPGet("https://bx.in.th/api/orderbook/?pairing=21")
+	utils.JJKPrintln(json)
+
 	utils.JJKPrintln("all task finished!")
 	select {}
 }
