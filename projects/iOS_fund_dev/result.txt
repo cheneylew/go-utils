@@ -1,0 +1,27 @@
+- (void)queryBasicFundInfoDetailWithFundCode:(NSString *) fundCode
+shareClass:(NSString *) shareClass
+completion:(void (^)(JJUser* dataModel))success 
+failure:(void (^)(NVErrorDataModel* dataModel))failure {
+    NSString* path = @"/query/queryBasicFundInfoDetail";
+
+    NSMutableDictionary *params = [NSMutableDictionary new];
+    [params nvSetObject:fundCode forKey:@"fundCode"];
+    [params nvSetObject:shareClass forKey:@"shareClass"];
+    [self request:path
+           mothed:@"POST"
+          version:@"1.0"
+       parameters:params
+          success:^(id responseObject) {
+              NSDictionary* dic = [responseObject valueForKey:kResponseData];
+
+              if (success) {
+                  JJUser * dataModel = [JJUser mj_objectWithKeyValues:dic];
+                  success(dataModel);
+              }
+          }
+          failure:^(NVErrorDataModel *dataModel) {
+              if (failure) {
+                  failure(dataModel);
+              }
+          }];
+}
