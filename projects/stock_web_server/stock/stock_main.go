@@ -460,6 +460,28 @@ func AnalysBuyWhat() []*models.Stock {
 	return stocks
 }
 
+func AnalysBuyUp() []*models.Stock {
+	InitCache()
+
+	recentCount := 10
+	var stocks []*models.Stock
+	for _, stock := range CCGetStockAll() {
+		klines := CCGetKLinesWithCode(stock.Code, 30)
+		if len(klines) >= 30 {
+			isUp,_,_ := KLineIsUp(klines[:len(klines)-recentCount])
+			if isUp {
+				stocks = append(stocks, stock)
+			}
+		}
+	}
+
+	sort.Slice(stocks, func(i, j int) bool {
+		return stocks[i].ChangeHandRate > stocks[j].ChangeHandRate
+	})
+
+	return stocks
+}
+
 func Analys5MainInStocks() []*models.Stock {
 	var stocks []*models.Stock
 	utils.JJKPrintln(len(allStocks))
@@ -684,11 +706,11 @@ func AnalysMACD(redCount int) []*models.Stock {
 
 func AnalysNewStocks() []*models.Stock  {
 
-	lessThanDays := 50
+	lessThanDays := 20
 	var resStocks []*models.Stock
 	stocks := CCGetStockAll()
 	for _, stock := range stocks {
-		klines := CCGetKLinesWithCode(stock.Code,lessThanDays+10)
+		klines := CCGetKLinesWithCode(stock.Code,lessThanDays+1)
 		if len(klines) < lessThanDays && len(klines) != 0 {
 			resStocks = append(resStocks, stock)
 		}
