@@ -1,24 +1,29 @@
 package main
 
-import "github.com/cheneylew/goutil/utils"
+import (
+	"github.com/cheneylew/goutil/utils"
+	"time"
+)
 
 func main() {
-	timer := utils.JKTimer{}
-	timer.Start()
-	count := 10000*1000
-	slice := make([]string, count)
-	for i:=0;i<count ; i++ {
-		slice = append(slice, utils.RandomString(32))
-	}
-	timer.Record()
-	for _, value := range slice {
-		if len(value) == 32 {
-			
-		}
-	}
-	timer.Record()
 
-	utils.JJKPrintln("End!")
-	select {
+	for i:=0; i<10 ; i++ {
+		utils.JJKPrintln(i)
 	}
+
+	singal := make(chan int)
+	utils.JJKPrintln("Started!")
+
+	go func(j chan int) {
+		i := 10
+		for i > 0 {
+			i --
+			time.Sleep(time.Second*2)
+			utils.JJKPrintln("ok!")
+		}
+		j <- 1
+	}(singal)
+
+	<- singal
+	utils.JJKPrintln("End!")
 }

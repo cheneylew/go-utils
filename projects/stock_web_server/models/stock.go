@@ -99,6 +99,8 @@ type KLine struct {
 	Dif float64
 	Dea float64
 	Bar float64
+	//rsi
+	Rsi float64
 }
 
 func (k *KLine)IsRed() bool {

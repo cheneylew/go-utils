@@ -7,6 +7,7 @@
       <root url="file://$PROJECT_DIR$/../../../cloud.google.com" />
       <root url="file://$PROJECT_DIR$/../.." />
       <root url="file://$PROJECT_DIR$/../../../gocms.win" />
+      <root url="file://$PROJECT_DIR$/../../../google.golang.org" />
       <root url="file://$PROJECT_DIR$/../../../sourcegraph.com" />
       <root url="file://$PROJECT_DIR$/../../../gopkg.in" />
       <root url="file://$PROJECT_DIR$/../../../gowb" />
@@ -19,6 +20,7 @@
       <root url="file://$PROJECT_DIR$/../../../cloud.google.com" />
       <root url="file://$PROJECT_DIR$/../.." />
       <root url="file://$PROJECT_DIR$/../../../gocms.win" />
+      <root url="file://$PROJECT_DIR$/../../../google.golang.org" />
       <root url="file://$PROJECT_DIR$/../../../sourcegraph.com" />
       <root url="file://$PROJECT_DIR$/../../../gopkg.in" />
       <root url="file://$PROJECT_DIR$/../../../gowb" />

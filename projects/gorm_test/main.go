@@ -126,10 +126,27 @@ func gormMysql()  {
 	utils.FileWriteString("/Users/dejunliu/Desktop/a.txt", v2)
 }
 
-func main()  {
-	gormMysql()
+func readDevices()  {
+	texts := utils.FileReadAllString("/Users/dejunliu/Desktop/b.txt")
+	rows := strings.Split(texts, "\n")
+	text := "Device ID	Device Name\n"
+	for key, value := range rows {
+		result := utils.RegexpFindAll(value,`[0-9a-z]{40}`)
+		if len(result) > 0 {
+			uuid := result[0]
+			//name := utils.Trim(strings.Replace(value,uuid,"",-1))
+			text += fmt.Sprintf("%s	%d\n",uuid, key)
+		}
+	}
 
-	utils.JJKPrintln("this is end!")
+	utils.FileWriteString("/Users/dejunliu/Desktop/c.txt", text)
+
+}
+
+func main()  {
+	//gormMysql()
+	//readDevices()
+	utils.JJKPrintln("Service End!")
 	select {
 	}
 }

@@ -26,14 +26,14 @@ func GetKLineWeekUrl(code string, count int64) string {
 
 func GetStockDayKLine(code string, count int64) []*models.KLine {
 	url := GetKLineDayUrl(code, count)
-	utils.JJKPrintln(url)
+	//utils.JJKPrintln(url)
 	result := utils.HTTPGet(url)
 	jsonStr := strings.Replace(result,"kline_dayqfq=","",-1)
 
 	m := new(models.Response)
 	err := json.Unmarshal([]byte(jsonStr), &m)
 	if err != nil {
-		utils.JJKPrintln(err)
+		//utils.JJKPrintln(err)
 		return nil
 	}
 	infos := m.Data[code]

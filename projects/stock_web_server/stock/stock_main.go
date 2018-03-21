@@ -21,6 +21,7 @@ func ClearCache()  {
 func  StockTestMain()  {
 	CronMain()						//定时任务
 	InitCache()
+	Main_rsi()
 	//DownloadTaskAddKLines()		//同步增量数据
 
 	//uploadStocksCodeToDB()		//同步所有股票代码到数据库

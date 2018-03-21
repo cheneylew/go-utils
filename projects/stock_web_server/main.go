@@ -17,5 +17,6 @@ func beegoRun()  {
 func main() {
 	stock.StockTestMain()
 	beegoRun()
+	//stock.Main_rsi()
 }
 
