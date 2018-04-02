@@ -6,30 +6,196 @@ import (
 	"github.com/cheneylew/goutil/projects/stock_web_server/database"
 	"github.com/cheneylew/goutil/projects/stock_web_server/models"
 	"time"
+	"github.com/panshiqu/dysms"
+	"fmt"
+	"github.com/astaxie/beego/config"
+	"strings"
+	"sort"
 )
+
+var conf config.Configer
+
+func valueWithKey(key string) string {
+	if conf == nil {
+		iniconf, _ := config.NewConfig("ini", "conf/app.conf")
+		conf = iniconf
+
+	}
+	return conf.String(key)
+}
 
 func Main_rsi()  {
 	if false {
-		rsi, _ := calculateRSI("sz000651")
+		rsi, _ := calculateRSI("sz000651",50)
 		utils.JJKPrintln(rsi)
+	}
+
+	if false {
+		sendSMS("000651")
 	}
 
 	//rsi开始回调的股票
 	if false {
 		shStocks := database.DB.GetStockWithCodePrefix("60")
-		for _, value := range shStocks {
-			_, lines := calculateRSI(value.CodeStr())
+		for _, stock := range shStocks {
+			_, lines := calculateRSI(stock.CodeStr(),50)
 			if len(lines) > 2 {
-				lastOne := lines[len(lines)-1]
-				lastSecondOne := lines[len(lines)-2]
-				isRecent := lastOne.Date.After(time.Now().Add(time.Hour*24*-3))
-				if lastSecondOne.Rsi < 20 && value.FlowAmount > 50 && lastOne.Rsi > lastSecondOne.Rsi && isRecent {
-					utils.JJKPrintln(lastOne.Rsi, lastOne.ClosingPrice, value.Code, value.FlowAmount)
+				last1 := lines[len(lines)-1]
+				last2 := lines[len(lines)-2]
+				last3 := lines[len(lines)-3]
+				//last4 := lines[len(lines)-4]
+				isRecent := last1.Date.After(time.Now().Add(time.Hour*24*-7))
+				amountOk := stock.FlowAmount > 300
+
+				//rsi低位连涨两天，第三天9:45入手，rsi低于20靠谱点
+				condition1 := last3.Rsi < 27.5 && last3.Rsi < last2.Rsi && last2.Rsi < last1.Rsi
+				//rsi低位涨一天跌一天，再涨一天。跌的一天rsi高于低位
+				condition2 := false //last4.Rsi < 27.5 && last4.Rsi < last3.Rsi && last3.Rsi > last2.Rsi && last2.Rsi < last1.Rsi && last4.Rsi < last2.Rsi
+				if isRecent && amountOk && (condition1 || condition2) {
+				//if isRecent && last2.Rsi < 25 && last2.Rsi < last1.Rsi{
+				//if isRecent && last4.Rsi < 25 && last4.Rsi < last3.Rsi && last3.Rsi > last2.Rsi && last2.Rsi < last1.Rsi && last2.Rsi > last4.Rsi {//回来
+					utils.JJKPrintln(fmt.Sprintf("code:%s", stock.Code), fmt.Sprintf(" rsi:%.2f", last1.Rsi), fmt.Sprintf(" 价格:%.2f", last1.ClosingPrice),  fmt.Sprintf(" 总市值：%.2f", stock.FlowAmount))
 				}
 			}
 		}
 	}
 
+	//监控某只几只股票
+	if false {
+		stocks := valueWithKey("stocks")
+		//定时执行
+		utils.CronJob("00 30 16 * * 1-5", func() {
+		//utils.CronJob("*/5 * * * * ?", func() {
+				codes := strings.Split(stocks,"|")
+				for _, code := range codes {
+					stock := database.DB.GetStockWithCode(code)
+					_, lines := calculateRSI(stock.CodeStr(),50)
+					if len(lines) > 2 {
+						last1 := lines[len(lines)-1]
+						last2 := lines[len(lines)-2]
+						last3 := lines[len(lines)-3]
+						isRecent := last1.Date.After(time.Now().Add(time.Hour*24*-7))
+						//rsi低位连涨两天，第三天9:45入手，rsi低于20靠谱点
+						if isRecent && last3.Rsi < 27.5 && last3.Rsi < last2.Rsi && last2.Rsi < last1.Rsi {
+							utils.JJKPrintln(stock.Code, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
+							sendSMS(stock.Code)
+						}
+					}
+				}
+		})
+	}
+
+	//测试胜率
+	if false {
+		codes := strings.Split("601952","|")
+		for _, code := range codes {
+			stock := database.DB.GetStockWithCode(code)
+			_, lines := calculateRSI(stock.CodeStr(),400)
+			utils.JJKPrintln(len(lines))
+			if len(lines) > 2 {
+				for i:=10; i<len(lines); i++ {
+					last1 := lines[i-1]	//买入点
+					last2 := lines[i-2]
+					last3 := lines[i-3]
+					last4 := lines[i-4]
+
+					//rsi低位连涨两天，第三天9:45入手，rsi低于20靠谱点
+					condition1 := last3.Rsi < 27.5 && last3.Rsi < last2.Rsi && last2.Rsi < last1.Rsi
+					//rsi低位涨一天跌一天，再涨一天。跌的一天rsi高于低位
+					condition2 := last4.Rsi < 27.5 && last4.Rsi < last3.Rsi && last3.Rsi > last2.Rsi && last2.Rsi < last1.Rsi && last4.Rsi < last2.Rsi
+					if condition1 || condition2 {
+						utils.JJKPrintln(stock.Code, last1.Date, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
+					}
+				}
+			}
+		}
+	}
+
+	//macd统计方式
+	if true {
+		shStocks := database.DB.GetStockWithCodePrefix("60")
+		var stocks []*models.Stock
+		for _, stock := range shStocks {
+			_, lines := calculateMACD(stock.CodeStr(), 400)
+			if len(lines) > 2 {
+				last1 := lines[len(lines)-1]
+				last5 := lines[len(lines)-6]
+				isRecent := last1.Date.After(time.Now().Add(time.Hour*24*-7))
+				//空方DIF趋势向上,发生在0轴附近
+				//condition1 := last1.Dif > last5.Dif && math.Abs(last1.Dif)<0.05
+				//多方DIF趋势向上,发生在多方，一直往上涨。马上突破0轴
+				condition1 := last1.Dif > last5.Dif && last5.Dif<=-0.1 && last1.Dif >= -0.05 && last1.Dif <= 0
+				//macd发生交叉
+				//condition1 := math.Abs((last1.Dif-last1.Dea)) <= 0.05 && lines[len(lines)-9].Dif < -0.2
+				if isRecent && len(lines) > 100 && condition1 {
+					utils.JJKPrintln("code:",stock.Code," dif:", last1.Dif," dea:", last1.Dea)
+					stocks = append(stocks, stock)
+				}
+			}
+		}
+
+		//按换手率活跃度排序
+		sort.Slice(stocks, func(i, j int) bool {
+			return stocks[i].ChangeHandRate < stocks[j].ChangeHandRate
+		})
+		for _, value := range stocks {
+			utils.JJKPrintln(value.Code, value.ChangeHandRate)
+		}
+	}
+
+	//KDJ选择下叉方式
+	if false {
+		shStocks := database.DB.GetStockWithCodePrefix("60")
+		var stocks []*models.Stock
+		for _, stock := range shStocks {
+			_, lines := calculateKDJ(stock.CodeStr(), 400)
+			if len(lines) > 2 {
+				curDayStock := lines[len(lines)-1]
+				yestodayStock := lines[len(lines)-2]
+				condition1 := math.Abs(curDayStock.Kdj_k-curDayStock.Kdj_d) < 2 && curDayStock.Kdj_k < 45 && curDayStock.Kdj_k>=curDayStock.Kdj_d && yestodayStock.Kdj_k < curDayStock.Kdj_k
+				isRecent := curDayStock.Date.After(time.Now().Add(time.Hour*24*-7))
+				if isRecent && len(lines) > 100 && condition1 {
+					utils.JJKPrintln("code:",stock.Code," k:", curDayStock.Kdj_k," d:", curDayStock.Kdj_d," 换手率:",stock.ChangeHandRate)
+					stocks = append(stocks, stock)
+				}
+			}
+		}
+
+		//按换手率活跃度排序
+		sort.Slice(stocks, func(i, j int) bool {
+			return stocks[i].ChangeHandRate < stocks[j].ChangeHandRate
+		})
+		for _, value := range stocks {
+			utils.JJKPrintln(value.Code, value.ChangeHandRate)
+		}
+	}
+
+	//测试胜率KDJ
+	if false {
+		codes := strings.Split("600271","|")
+		for _, code := range codes {
+			stock := database.DB.GetStockWithCode(code)
+			_, lines := calculateKDJ(stock.CodeStr(),400)
+			utils.JJKPrintln(len(lines))
+			if len(lines) > 2 {
+				for i:=10; i<len(lines); i++ {
+					curDayStock := lines[i-1]
+					yestodayStock := lines[i-2]
+					condition1 := math.Abs(curDayStock.Kdj_k-curDayStock.Kdj_d) < 2 && curDayStock.Kdj_k < 45 && yestodayStock.Kdj_k < curDayStock.Kdj_k
+					if condition1 {
+						utils.JJKPrintln(curDayStock.Date)
+					}
+				}
+			}
+		}
+	}
+}
+
+func sendSMS(stockCode string)  {
+	mobile := "17602125152"
+	if err := dysms.SendSms("LTAIwsROTsyzMq1a", "KIJzyH67zdskMBdjOIYKnDdv7xavX7", mobile, "爱编程", fmt.Sprintf(`{"code":"%s"}`, stockCode), "SMS_128535187"); err != nil {
+		utils.JJKPrintln("dysms.SendSms", err)
+	}
 }
 
 /*
@@ -41,10 +207,10 @@ Average Gain = [(previous Average Gain) x 13 + current Gain] / 14.
 Average Loss = [(previous Average Loss) x 13 + current Loss] / 14.
 http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:relative_strength_index_rsi
  */
-func calculateRSI(code string) (todayRSI float64, lines []*models.KLine)  {
+func calculateRSI(code string, count int64) (todayRSI float64, lines []*models.KLine)  {
 	todayRsiValue := 0.0
 
-	klines := GetStockDayKLine(code,50)
+	klines := GetStockDayKLine(code,count)
 	//N日RSI =N日内收盘涨幅的平均值/(N日内收盘涨幅均值+N日内收盘跌幅均值) ×100%
 	dayNum := 6
 	prevAverageGain := 0.0

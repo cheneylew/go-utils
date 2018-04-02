@@ -101,6 +101,10 @@ type KLine struct {
 	Bar float64
 	//rsi
 	Rsi float64
+	//KDJ
+	Kdj_k float64
+	Kdj_d float64
+	Kdj_j float64
 }
 
 func (k *KLine)IsRed() bool {

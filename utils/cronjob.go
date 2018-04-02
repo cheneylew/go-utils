@@ -43,7 +43,7 @@ var CronJobs []*cron.Cron
 // 00 26 09 10 * ? 		//每月10日09:26:00执行
 // 00 26 09 10 02 ? 	//每年02月10日09:26:00执行
 // 1-10/2 * * * * * 	//1-10秒之间，没2秒执行一次
-// 00 00 23 * * 1-5		//周一到周五，23:00:00执行
+// 00 10 23 * * 1-5		//周一到周五，23:10:00执行
 func CronJob(spec string, jobfunc JobFunc )  {
 	c := cron.New()
 	c.AddFunc(spec, jobfunc)

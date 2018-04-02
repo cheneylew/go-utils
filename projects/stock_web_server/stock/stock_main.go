@@ -20,7 +20,7 @@ func ClearCache()  {
 
 func  StockTestMain()  {
 	CronMain()						//定时任务
-	InitCache()
+	//InitCache()
 	Main_rsi()
 	//DownloadTaskAddKLines()		//同步增量数据
 

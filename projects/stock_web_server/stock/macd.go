@@ -99,3 +99,41 @@ func macd(stock *models.Stock)  {
 		}
 	}
 }
+
+
+func calculateMACD(code string, count int64) (todayDIF float64, lines []*models.KLine)  {
+	klines := GetStockDayKLine(code,count)
+	if len(klines) <= 14 {
+		return 0, nil
+	}
+
+	var lastEMA12 float64 = 0
+	var lastEMA26 float64 = 0
+	var lastDEA float64 = 0
+	for index, kline := range klines {
+		if index > 0 {
+			nowEMA12 := lastEMA12 * 11.0 / 13.0 + kline.ClosingPrice*2.0/13.0
+			nowEMA26 := lastEMA26 * 25.0 / 27.0 + kline.ClosingPrice*2.0/27.0
+			nowDIF := nowEMA12 - nowEMA26
+			nowDEA := lastDEA * 8.0 / 10.0 + nowDIF*2.0/10.0
+			nowBAR := 2*(nowDIF - nowDEA)
+			//utils.JJKPrintln(fmt.Sprintf("%s,%f,%f,dif=%f,dea=%f,macd_bar=%f", kline.Date,nowEMA12, nowEMA26, nowDIF, nowDEA, nowBAR))
+
+			lastEMA12 = nowEMA12
+			lastEMA26 = nowEMA26
+			lastDEA = nowDEA
+
+			klines[index].Ema12 = nowEMA12
+			klines[index].Ema26 = nowEMA26
+			klines[index].Dif = nowDIF
+			klines[index].Dea = nowDEA
+			klines[index].Bar = nowBAR
+		} else {
+			lastEMA12 = kline.ClosingPrice
+			lastEMA26 = kline.ClosingPrice
+			lastDEA = 0
+		}
+	}
+
+	return klines[len(klines)-1].Dif, klines
+}
