@@ -11,6 +11,7 @@ import (
 	"github.com/astaxie/beego/config"
 	"strings"
 	"sort"
+	"path"
 )
 
 var conf config.Configer
@@ -61,28 +62,8 @@ func Main_rsi()  {
 	}
 
 	//监控某只几只股票
-	if false {
-		stocks := valueWithKey("stocks")
-		//定时执行
-		utils.CronJob("00 30 16 * * 1-5", func() {
-		//utils.CronJob("*/5 * * * * ?", func() {
-				codes := strings.Split(stocks,"|")
-				for _, code := range codes {
-					stock := database.DB.GetStockWithCode(code)
-					_, lines := calculateRSI(stock.CodeStr(),50)
-					if len(lines) > 2 {
-						last1 := lines[len(lines)-1]
-						last2 := lines[len(lines)-2]
-						last3 := lines[len(lines)-3]
-						isRecent := last1.Date.After(time.Now().Add(time.Hour*24*-7))
-						//rsi低位连涨两天，第三天9:45入手，rsi低于20靠谱点
-						if isRecent && last3.Rsi < 27.5 && last3.Rsi < last2.Rsi && last2.Rsi < last1.Rsi {
-							utils.JJKPrintln(stock.Code, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
-							sendSMS(stock.Code)
-						}
-					}
-				}
-		})
+	if true {
+		observeStocks()
 	}
 
 	//测试胜率
@@ -112,7 +93,7 @@ func Main_rsi()  {
 	}
 
 	//macd统计方式
-	if true {
+	if false {
 		shStocks := database.DB.GetStockWithCodePrefix("60")
 		var stocks []*models.Stock
 		for _, stock := range shStocks {
@@ -123,7 +104,9 @@ func Main_rsi()  {
 				isRecent := last1.Date.After(time.Now().Add(time.Hour*24*-7))
 				//空方DIF趋势向上,发生在0轴附近
 				//condition1 := last1.Dif > last5.Dif && math.Abs(last1.Dif)<0.05
-				//多方DIF趋势向上,发生在多方，一直往上涨。马上突破0轴
+				//多方DIF趋势向上,发生在多方，一直往上涨。
+				//condition1 := last1.Dif > last5.Dif && last5.Dif>0
+				//多方DIF趋势向上,马上突破0轴，一直往上涨。
 				condition1 := last1.Dif > last5.Dif && last5.Dif<=-0.1 && last1.Dif >= -0.05 && last1.Dif <= 0
 				//macd发生交叉
 				//condition1 := math.Abs((last1.Dif-last1.Dea)) <= 0.05 && lines[len(lines)-9].Dif < -0.2
@@ -189,6 +172,132 @@ func Main_rsi()  {
 			}
 		}
 	}
+
+	//测试胜率MACD底背离
+	if false {
+		codes := strings.Split("603920","|")
+		for _, code := range codes {
+			stock := database.DB.GetStockWithCode(code)
+			_, lines := calculateMACD(stock.CodeStr(),400)
+			length := len(lines)
+			utils.JJKPrintln(length)
+			days := 40
+			if len(lines) > 2 {
+				for i:=days; i<length; i++ {
+					minPrice := 10000.0
+					minSencondPrice := 10000.0
+					maxPrice := 0.0
+					var minDate time.Time
+					//var maxDate time.Time
+					var minSencondDate time.Time
+					var minKLine *models.KLine
+					var minSecKLine *models.KLine
+
+					for j:=i-days; j<=i; j++ {
+						if lines[j].MaxPrice > maxPrice {
+							maxPrice = lines[j].MaxPrice
+							//maxDate = lines[j].Date
+						}
+
+						if lines[j].MinPrice <= minPrice {
+							minPrice = lines[j].MinPrice
+							minDate = lines[j].Date
+							minKLine = lines[j]
+						}
+
+						ok := false
+						if math.Abs(float64(lines[j].Date.Unix()-minDate.Unix())) < 3600*24 *3 {
+							ok = true
+						}
+						if lines[j].MinPrice <= minSencondPrice && lines[j].MinPrice > minPrice && ok {
+							minSencondPrice = lines[j].MinPrice
+							minSencondDate = lines[j].Date
+							minSecKLine = lines[j]
+						}
+					}
+					if minKLine != nil && minSecKLine != nil && math.Abs(float64(minKLine.Date.Unix()-minSecKLine.Date.Unix())) > 3600*24*10 {
+						if minKLine.Dif > minSecKLine.Dif && minKLine.MinPrice < minSecKLine.MinPrice {
+							utils.JJKPrintln(" minSec:", minSencondPrice, minSencondDate," min:",minPrice, minDate)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func GetObserverStocksFilePath() string {
+	return path.Join("/Users/dejunliu/Desktop", "stocks.txt")
+}
+
+func observeStocks()  {
+	stocks := valueWithKey("stocks")
+	//定时执行
+	utils.CronJob("00 05 15 * * 1-5", func() {
+		//rsi低位监控，发现股票rsi处于低位，发送短信提示
+		if true {
+			codes := strings.Split(stocks,"|")
+			for _, code := range codes {
+				stock := database.DB.GetStockWithCode(code)
+				_, lines := calculateRSI(stock.CodeStr(),50)
+				if len(lines) > 2 {
+					last1 := lines[len(lines)-1]
+					last2 := lines[len(lines)-2]
+					last3 := lines[len(lines)-3]
+					isRecent := last1.Date.After(time.Now().Add(time.Hour*24*-7))
+					//rsi低位连涨两天，第三天9:45入手，rsi低于20靠谱点
+					if isRecent && last3.Rsi < 27.5 && last3.Rsi < last2.Rsi && last2.Rsi < last1.Rsi {
+						utils.JJKPrintln(stock.Code, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
+						sendSMS(stock.Code)
+					}
+				}
+			}
+		}
+
+		//macd统计方式
+		if true {
+			//下载股票信息，总市值等
+			downloadStockInfo()
+			//计算macd
+			shStocks := database.DB.GetStockWithCodePrefix("60")
+			shStocks = append(shStocks, database.DB.GetStockWithCodePrefix("00")...)
+			var stocks []*models.Stock
+			for _, stock := range shStocks {
+				_, lines := calculateMACD(stock.CodeStr(), 400)
+				if len(lines) > 2 {
+					last1 := lines[len(lines)-1]
+					last5 := lines[len(lines)-6]
+					isRecent := last1.Date.After(time.Now().Add(time.Hour*24*-7))
+					//空方DIF趋势向上,发生在0轴附近
+					//condition1 := last1.Dif > last5.Dif && math.Abs(last1.Dif)<0.05
+					//多方DIF趋势向上,发生在多方，一直往上涨。
+					//condition1 := last1.Dif > last5.Dif && last5.Dif>0
+					//多方DIF趋势向上,马上突破0轴，一直往上涨。
+					condition1 := last1.Dif > last5.Dif && last5.Dif<=-0.1 && last1.Dif >= -0.05 && last1.Dif <= 0
+					//macd发生交叉
+					//condition1 := math.Abs((last1.Dif-last1.Dea)) <= 0.05 && lines[len(lines)-9].Dif < -0.2
+					if isRecent && len(lines) > 100 && condition1 {
+						utils.JJKPrintln("code:",stock.Code," dif:", last1.Dif," dea:", last1.Dea)
+						stocks = append(stocks, stock)
+					}
+				}
+			}
+
+			//按换手率活跃度排序
+			sort.Slice(stocks, func(i, j int) bool {
+				return stocks[i].ChangeHandRate > stocks[j].ChangeHandRate
+			})
+
+			file := GetObserverStocksFilePath()
+			text := ""
+			for _, value := range stocks {
+				text = fmt.Sprintf("%s%s %.2f\n", text,value.Code, value.ChangeHandRate)
+				utils.JJKPrintln(value.Code, value.ChangeHandRate)
+			}
+
+			utils.FileWriteString(file, text)
+		}
+	})
 }
 
 func sendSMS(stockCode string)  {

@@ -7,6 +7,7 @@ import (
 	"github.com/cheneylew/goutil/projects/stock_web_server/models"
 	"time"
 	"sort"
+	"strings"
 )
 
 type MainController struct {
@@ -184,6 +185,25 @@ func (c *MainController) AnalysNewStocks()  {
 		return newStocks[i].ChangeHandRate > newStocks[j].ChangeHandRate
 	})
 	c.Data["Stocks"] = newStocks
+	c.TplName = "main5.html"
+}
+
+func (c *MainController) Macd()  {
+	//stock.InitCache()
+	file := stock.GetObserverStocksFilePath()
+	text := utils.FileReadAllString(file)
+	lines := strings.Split(text,"\n")
+	var stocks []*models.Stock
+	for _, line := range lines {
+		infos := strings.Split(line," ")
+		if len(infos) > 1 {
+			code := infos[0]
+			stock := database.DB.GetStockWithCode(code)
+			stocks = append(stocks, stock)
+		}
+	}
+
+	c.Data["Stocks"] = stocks
 	c.TplName = "main5.html"
 }
 
