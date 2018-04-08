@@ -98,8 +98,10 @@ func Main_rsi()  {
 		var stocks []*models.Stock
 		for _, stock := range shStocks {
 			_, lines := calculateMACD(stock.CodeStr(), 400)
+			lines = calculateKDJWithLines(lines)
 			if len(lines) > 2 {
 				last1 := lines[len(lines)-1]
+				last2 := lines[len(lines)-2]
 				//last5 := lines[len(lines)-6]
 				isRecent := last1.Date.After(time.Now().Add(time.Hour*24*-7))
 				//空方DIF趋势向上,发生在0轴附近
@@ -119,19 +121,20 @@ func Main_rsi()  {
 				//多方DIF趋势向上，绿柱消失，出现第一根红柱子
 				//condition1 := lines[len(lines)-1].Dif>0 && lines[len(lines)-1].Bar>0 && lines[len(lines)-2].Bar<0
 				//红柱汤匙形态发射
-				condition1 := true
-				days := 6
-				for i:=1;i<=days ; i++ {
-					if lines[len(lines)-i].Bar<lines[len(lines)-i-1].Bar {
-						condition1 = false
-					}
-				}
-				if lines[len(lines)-days-1].Bar<0 {
-					condition1 = false
-				}
-
+				//condition1 := true
+				//days := 6
+				//for i:=1;i<=days ; i++ {
+				//	if lines[len(lines)-i].Bar<lines[len(lines)-i-1].Bar {
+				//		condition1 = false
+				//	}
+				//}
+				//if lines[len(lines)-days-1].Bar<0 {
+				//	condition1 = false
+				//}
+				//DIF>0,KDJ下叉
+				condition1 := last1.Kdj_k>last1.Kdj_d && last2.Kdj_k<last2.Kdj_d && last1.Dif<0
 				if isRecent && len(lines) > 100 && condition1 {
-					utils.JJKPrintln("code:",stock.Code," dif:", last1.Dif," dea:", last1.Dea)
+					utils.JJKPrintln("code:",stock.Code," dif:", last1.Dif," dea:", last1.Dea," kdj-k:", last1.Kdj_k," kdj-d:", last1.Kdj_d)
 					stocks = append(stocks, stock)
 				}
 			}
@@ -331,79 +334,4 @@ func sendSMS(stockCode string)  {
 	if err := dysms.SendSms("LTAIwsROTsyzMq1a", "KIJzyH67zdskMBdjOIYKnDdv7xavX7", mobile, "爱编程", fmt.Sprintf(`{"code":"%s"}`, stockCode), "SMS_128535187"); err != nil {
 		utils.JJKPrintln("dysms.SendSms", err)
 	}
-}
-
-/*
-The very first calculations for average gain and average loss are simple 14-period averages.
-First Average Gain = Sum of Gains over the past 14 periods / 14.
-First Average Loss = Sum of Losses over the past 14 periods / 14
-The second, and subsequent, calculations are based on the prior averages and the current gain loss:
-Average Gain = [(previous Average Gain) x 13 + current Gain] / 14.
-Average Loss = [(previous Average Loss) x 13 + current Loss] / 14.
-http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:relative_strength_index_rsi
- */
-func calculateRSI(code string, count int64) (todayRSI float64, lines []*models.KLine)  {
-	klines := GetStockDayKLine(code,count)
-	return klines[len(klines)-1].Rsi, lines
-}
-
-func calculateRSIWithLines(klines []*models.KLine) []*models.KLine  {
-	//N日RSI =N日内收盘涨幅的平均值/(N日内收盘涨幅均值+N日内收盘跌幅均值) ×100%
-	dayNum := 6
-	prevAverageGain := 0.0
-	prevAverageLoss := 0.0
-	for i:=0; i<len(klines) ; i++  {
-		if i>=dayNum {
-			lastIndex := i-dayNum
-			if lastIndex == 0 { //第一次求平均
-				riseCount := 0.0
-				fallCount := 0.0
-
-				prevIndex := lastIndex
-				for j:= lastIndex+1; j<= i;j++ {
-					deltaPrice := klines[j].ClosingPrice-klines[prevIndex].ClosingPrice
-					if deltaPrice > 0 {
-						riseCount += deltaPrice
-					} else {
-						fallCount += math.Abs(deltaPrice)
-					}
-					prevIndex = j
-				}
-
-				AverageGain := riseCount/float64(dayNum)
-				AverageLoss := fallCount/float64(dayNum)
-				//RS := AverageGain/AverageLoss
-				//RSI := 100.0-(100.0/(1+RS))
-
-				prevAverageGain = AverageGain
-				prevAverageLoss = AverageLoss
-
-				//utils.JJKPrintln(RSI,klines[i].Date)
-			} else { //根据前一次推算
-				riseCount := 0.0
-				fallCount := 0.0
-
-				deltaPrice := klines[i].ClosingPrice-klines[i-1].ClosingPrice
-				if deltaPrice > 0 {
-					riseCount = prevAverageGain*float64((dayNum-1))+deltaPrice
-					fallCount = prevAverageLoss*float64(dayNum-1)+0
-				} else {
-					riseCount = prevAverageGain*float64(dayNum-1)+0
-					fallCount = prevAverageLoss*float64(dayNum-1)+math.Abs(deltaPrice)
-				}
-
-				AverageGain := riseCount/float64(dayNum)
-				AverageLoss := fallCount/float64(dayNum)
-				RS := AverageGain/AverageLoss
-				RSI := 100.0-(100.0/(1+RS))
-
-				prevAverageGain = math.Abs(AverageGain)
-				prevAverageLoss = math.Abs(AverageLoss)
-
-				klines[i].Rsi = RSI
-			}
-		}
-	}
-
-	return klines
 }
