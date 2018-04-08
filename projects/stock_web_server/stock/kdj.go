@@ -6,6 +6,10 @@ import (
 
 func calculateKDJ(code string, count int64) (todayKDJ float64, lines []*models.KLine)  {
 	klines := GetStockDayKLine(code,count)
+	return 0, calculateKDJWithLines(klines)
+}
+
+func calculateKDJWithLines(klines []*models.KLine) []*models.KLine {
 	dayNum := 9
 	lastVK := 0.0
 	lastVD := 0.0
@@ -45,6 +49,6 @@ func calculateKDJ(code string, count int64) (todayKDJ float64, lines []*models.K
 		}
 	}
 
-	return 0, klines
+	return klines
 }
 

@@ -107,6 +107,11 @@ func calculateMACD(code string, count int64) (todayDIF float64, lines []*models.
 		return 0, nil
 	}
 
+	klines = calculateMACDWithLines(klines)
+	return klines[len(klines)-1].Dif, klines
+}
+
+func calculateMACDWithLines(klines []*models.KLine) []*models.KLine {
 	var lastEMA12 float64 = 0
 	var lastEMA26 float64 = 0
 	var lastDEA float64 = 0
@@ -135,5 +140,5 @@ func calculateMACD(code string, count int64) (todayDIF float64, lines []*models.
 		}
 	}
 
-	return klines[len(klines)-1].Dif, klines
+	return klines
 }
