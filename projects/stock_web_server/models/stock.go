@@ -67,6 +67,17 @@ type Stock struct {
 
 	RedBarCount	float64  `orm:"-"` //macd 红色柱子总和
 	GreenBarCount	float64  `orm:"-"` //macd 绿色柱子总和
+
+	//用于排序的字段
+	SortVal float64  `orm:"-"`
+}
+
+type MyStock struct {
+	MyStockId  int64       `orm:"pk;auto"`
+	Code string
+	Name string
+	BuyPrice float64
+	IsBuy bool
 }
 
 func (s *Stock)CodeStr() string {

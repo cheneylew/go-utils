@@ -200,3 +200,16 @@ func (db *DataBase)GetDateOfLastKLineWithStockID(stockId int64) time.Time {
 	t, _ := now.Parse("2007-01-01 00:00:00")
 	return t
 }
+
+func (db *DataBase)GetMyStocks() []*models.MyStock {
+	var objects []*models.MyStock
+
+	qs := db.Orm.QueryTable("MyStock")
+	_, err := qs.RelatedSel().All(&objects)
+
+	if err == nil && len(objects) > 0 {
+		return objects
+	}
+
+	return nil
+}
