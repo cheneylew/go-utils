@@ -207,3 +207,8 @@ func (c *MainController) Macd()  {
 	c.TplName = "main5.html"
 }
 
+func (c *MainController) Push()  {
+	stock.PushNotification("hello!")
+	c.Ctx.WriteString("have sent!")
+}
+

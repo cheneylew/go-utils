@@ -21,13 +21,15 @@ func valueWithKey(key string) string {
 
 func Main_rsi()  {
 	//监控某只几只股票
-	if false {
+	if true {
+		utils.JJKPrintln("开始监控股票...")
 		//定时执行
 		utils.CronJob("00 45 14 * * 1-5", func() {
 			observeStocks()
 		})
 
-		//observeStocks()
+		PushNotification("hello world")
+		observeStocks()
 	}
 
 	if false {
@@ -92,11 +94,11 @@ func Main_rsi()  {
 	}
 
 	//macd统计方式
-	if true {
+	if false {
 		//下载换手率
-		InitCache()
-		downloadStockInfo()
-		utils.JJKPrintln("update stock infos ok!")
+		//InitCache()
+		//downloadStockInfo()
+		//utils.JJKPrintln("update stock infos ok!")
 		//分析股票
 		shStocks := database.DB.GetStockWithCodePrefix("60")
 		shStocks = append(shStocks, database.DB.GetStockWithCodePrefix("00")...)
@@ -337,7 +339,7 @@ func Main_rsi()  {
 }
 
 func GetObserverStocksFilePath() string {
-	return path.Join("/Users/dejunliu/Desktop", "stocks.txt")
+	return path.Join(utils.ExeDir(), "conf/stocks.txt")
 }
 
 func observeStocks()  {
@@ -359,7 +361,7 @@ func observeStocks()  {
 					condition1 := last1.Kdj_k>last1.Kdj_d && last2.Kdj_k<last2.Kdj_d && last1.Kdj_k < 50.0
 					if isRecent && condition1 {
 						utils.JJKPrintln(stock.Code, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
-						pushNotification(fmt.Sprintf("【买入提醒】：股票代码:%s KDJ发生黄金交叉，可以择机买入！", stock.Code))
+						PushNotification(fmt.Sprintf("【买入提醒】：股票代码:%s KDJ发生黄金交叉，可以择机买入！", stock.Code))
 					}
 				}
 			}
@@ -382,13 +384,13 @@ func observeStocks()  {
 						//kdj死叉判断
 						if isRecent && last1.Kdj_k<last1.Kdj_d && last2.Kdj_k>last2.Kdj_d {
 							utils.JJKPrintln(stock.Code, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
-							pushNotification(fmt.Sprintf("【卖出提醒】：%s:%s 发生KDJ死亡交叉，应该减仓！", value.Name, value.Code))
+							PushNotification(fmt.Sprintf("【卖出提醒】：%s:%s 发生KDJ死亡交叉，应该减仓！", value.Name, value.Code))
 						}
 
 						//macd由红变绿
 						if isRecent && last1.Bar<0 && last2.Bar>0 {
 							utils.JJKPrintln(stock.Code, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
-							pushNotification(fmt.Sprintf("【卖出提醒】：%s:%s macd柱状由红柱变为绿柱，应全部清仓！", value.Name, stock.Code))
+							PushNotification(fmt.Sprintf("【卖出提醒】：%s:%s macd柱状由红柱变为绿柱，应全部清仓！", value.Name, stock.Code))
 						}
 
 						//价格低于买入%5，清仓一半
@@ -396,12 +398,12 @@ func observeStocks()  {
 						utils.JJKPrintln(rate)
 						if isRecent && rate < -0.05 && rate > -0.1 {
 							utils.JJKPrintln(stock.Code, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
-							pushNotification(fmt.Sprintf("【卖出提醒】：%s:%s 跌幅超过买入价%%5，应减仓一半！",value.Name, stock.Code))
+							PushNotification(fmt.Sprintf("【卖出提醒】：%s:%s 跌幅超过买入价%%5，应减仓一半！",value.Name, stock.Code))
 						}
 
 						if isRecent && rate < -0.1 {
 							utils.JJKPrintln(stock.Code, last1.Rsi, last1.ClosingPrice,  stock.FlowAmount)
-							pushNotification(fmt.Sprintf("【卖出提醒】：%s:%s 跌幅超过买入价%%10，应全部清仓！",value.Name, stock.Code))
+							PushNotification(fmt.Sprintf("【卖出提醒】：%s:%s 跌幅超过买入价%%10，应全部清仓！",value.Name, stock.Code))
 						}
 					}
 				}

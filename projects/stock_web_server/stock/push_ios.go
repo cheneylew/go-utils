@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"path"
+	"github.com/cheneylew/goutil/utils"
 )
 
-func pushNotification (msg string)  {
-	cert, err := certificate.FromP12File("/Users/dejunliu/Desktop/apn-push-ios1234.p12", "1234")
+func PushNotification (msg string)  {
+	certPath := path.Join(utils.ExeDir(),"conf/apn-push-ios1234.p12")
+	cert, err := certificate.FromP12File(certPath, "1234")
 	if err != nil {
 		log.Fatal("Cert Error:", err)
 	}
