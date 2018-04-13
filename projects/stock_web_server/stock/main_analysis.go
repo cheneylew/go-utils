@@ -21,15 +21,12 @@ func valueWithKey(key string) string {
 
 func Main_rsi()  {
 	//监控某只几只股票
-	if true {
+	if false {
 		utils.JJKPrintln("开始监控股票...")
 		//定时执行
-		utils.CronJob("00 45 14 * * 1-5", func() {
+		utils.CronJob("00 05 13 * * 1-5", func() {
 			observeStocks()
 		})
-
-		PushNotification("hello world")
-		observeStocks()
 	}
 
 	if false {
@@ -94,11 +91,11 @@ func Main_rsi()  {
 	}
 
 	//macd统计方式
-	if false {
+	if true {
 		//下载换手率
-		//InitCache()
-		//downloadStockInfo()
-		//utils.JJKPrintln("update stock infos ok!")
+		InitCache()
+		downloadStockInfo()
+		utils.JJKPrintln("update stock infos ok!")
 		//分析股票
 		shStocks := database.DB.GetStockWithCodePrefix("60")
 		shStocks = append(shStocks, database.DB.GetStockWithCodePrefix("00")...)
