@@ -8,7 +8,21 @@ import (
 	"path"
 	"strings"
 	"os"
+	"net/http/cookiejar"
+	"log"
+	"net/url"
 )
+
+var GCurCookies []*http.Cookie
+var GCurCookieJar *cookiejar.Jar
+
+//do init before all others
+func init() {
+	GCurCookies = nil
+	//var err error;
+	GCurCookieJar, _ = cookiejar.New(nil)
+}
+
 
 /*Get 访问一个URL*/
 func HTTPGet(url string) string  {
@@ -30,6 +44,82 @@ func HTTPPost(url string, params map[string]string) string  {
 		Log(url, err)
 	}
 	return str
+}
+
+//get url response html
+func HTTPGetWithCookieCache(url string) string {
+	log.Printf("getUrlRespHtml, url=%s", url)
+
+	var respHtml string = ""
+
+	httpClient := &http.Client{
+		CheckRedirect: nil,
+		Jar:           GCurCookieJar,
+	}
+
+	// httpResp, err := httpClient.Get("http://example.com")
+
+	httpReq, err := http.NewRequest("GET", url, nil)
+	//httpReq.Header.Add("If-None-Match", `W/"wyzzy"`)
+	httpResp, err := httpClient.Do(httpReq)
+
+	//httpResp, err := http.Get(url)
+	//log.Printf("http.Get done")
+	if err != nil {
+		log.Printf("http get url=%s response error=%s\n", url, err.Error())
+	}
+	log.Printf("httpResp.Header=%s", httpResp.Header)
+	log.Printf("httpResp.Status=%s", httpResp.Status)
+
+	defer httpResp.Body.Close()
+
+	body, errReadAll := ioutil.ReadAll(httpResp.Body)
+	if errReadAll != nil {
+		log.Printf("get response for url=%s got error=%s\n", url, errReadAll.Error())
+	}
+
+	GCurCookies = GCurCookieJar.Cookies(httpReq.URL)
+
+	respHtml = string(body)
+	return respHtml
+}
+
+func HTTPPostWithCookieCache(url string, values url.Values) string {
+	log.Printf("getUrlRespHtml, url=%s", url)
+
+	var respHtml string = ""
+
+	httpClient := &http.Client{
+		CheckRedirect: nil,
+		Jar:           GCurCookieJar,
+	}
+
+	// httpResp, err := httpClient.Get("http://example.com")
+
+	httpReq, err := http.NewRequest("POST", url, strings.NewReader(values.Encode()))
+	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	//httpReq.Header.Add("If-None-Match", `W/"wyzzy"`)
+	httpResp, err := httpClient.Do(httpReq)
+
+	//httpResp, err := http.Get(url)
+	//log.Printf("http.Get done")
+	if err != nil {
+		log.Printf("http get url=%s response error=%s\n", url, err.Error())
+	}
+	log.Printf("httpResp.Header=%s", httpResp.Header)
+	log.Printf("httpResp.Status=%s", httpResp.Status)
+
+	defer httpResp.Body.Close()
+
+	body, errReadAll := ioutil.ReadAll(httpResp.Body)
+	if errReadAll != nil {
+		log.Printf("get response for url=%s got error=%s\n", url, errReadAll.Error())
+	}
+
+	GCurCookies = GCurCookieJar.Cookies(httpReq.URL)
+
+	respHtml = string(body)
+	return respHtml
 }
 
 

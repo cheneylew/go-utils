@@ -21,7 +21,11 @@ func (c *MainController) Get() {
 }
 
 func (c *MainController) Index() {
-	database.DB.HelloWorld()
-	c.TplName = "main.html"
+	if false {
+		database.DB.HelloWorld()
+		c.TplName = "main.html"
+	}
+	c.Data["json"] = "hello world"
+	c.ServeJSON()
 }
 

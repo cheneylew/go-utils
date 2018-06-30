@@ -20,7 +20,7 @@ func ClearCache()  {
 
 func  StockTestMain()  {
 	CronMain()						//定时任务
-	//InitCache()
+	InitCache()
 	Main_rsi()
 	//DownloadTaskAddKLines()		//同步增量数据
 
@@ -153,7 +153,7 @@ func downloadDayKLine(code string)  {
 	tmpStock.SyncTime = time.Now()
 	tmpStock.SyncOk = true
 	database.DB.Orm.Update(tmpStock)
-	utils.JJKPrintln("download ok ",code)
+	utils.JJKPrintln("download kline ok ",code)
 
 }
 
@@ -278,16 +278,17 @@ func downloadStockInfo()  {
 				return
 			}
 
-			deltaMoney := utils.ToFloat64(infoArr[31]) //涨跌
-			deltaMonyRate := utils.ToFloat64(infoArr[32]) //涨跌%  
+			deltaMoney := utils.ToFloat64(infoArr[31]) 		//涨跌
+			deltaMonyRate := utils.ToFloat64(infoArr[32]) 	//涨跌%  
 
-			flowAmount := utils.ToFloat64(infoArr[44]) //流通市值
-			totalAmount := utils.ToFloat64(infoArr[45]) //总市值
-			changeHandRate := utils.ToFloat64(infoArr[38]) //换手率
-			PERate := utils.ToFloat64(infoArr[39]) //市盈率 
-			PBRate := utils.ToFloat64(infoArr[46]) //市净率 
-			volAmount := utils.ToFloat64(infoArr[36]) //成交量（手）  
-			volAmountMoney := utils.ToFloat64(infoArr[37]) //成交额（万)
+			flowAmount := utils.ToFloat64(infoArr[44]) 		//流通市值
+			totalAmount := utils.ToFloat64(infoArr[45]) 	//总市值
+			changeHandRate := utils.ToFloat64(infoArr[38]) 	//换手率
+			PERate := utils.ToFloat64(infoArr[39]) 			//市盈率 
+			PBRate := utils.ToFloat64(infoArr[46]) 			//市净率 
+			volAmount := utils.ToFloat64(infoArr[36]) 		//成交量（手）  
+			volAmountMoney := utils.ToFloat64(infoArr[37]) 	//成交额（万)
+			VolRate := utils.ToFloat64(infoArr[49]) 		//量比
 
 			stock.FlowAmount = flowAmount
 			stock.TotalAmount = totalAmount
@@ -298,10 +299,11 @@ func downloadStockInfo()  {
 			stock.VolAmountMoney = volAmountMoney
 			stock.DeltaMoney = deltaMoney
 			stock.DeltaMoneyRate = deltaMonyRate
+			stock.VolRate = VolRate
 
 
 			database.DB.Orm.Update(stock)
-			utils.JJKPrintln(fmt.Sprintf("%s ok", stock.Code))
+			utils.JJKPrintln(fmt.Sprintf("%s change hand ok", stock.Code))
 		}
 	})
 }

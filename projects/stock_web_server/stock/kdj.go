@@ -2,10 +2,12 @@ package stock
 
 import (
 	"github.com/cheneylew/goutil/projects/stock_web_server/models"
+	//"github.com/cheneylew/goutil/projects/stock_web_server/database"
 )
 
 func calculateKDJ(code string, count int64) (todayKDJ float64, lines []*models.KLine)  {
-	klines := GetStockDayKLine(code,count)
+	//klines := database.DB.GetKLineAllForStockCodeAndDays(code, int(count))
+	klines := CCGetKLinesWithCode(code, int(count))
 	return 0, calculateKDJWithLines(klines)
 }
 

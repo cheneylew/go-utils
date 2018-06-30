@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/cheneylew/goutil/utils"
 	"strings"
+	"github.com/tealeg/xlsx"
 )
 
 type Product struct {
@@ -143,9 +144,27 @@ func readDevices()  {
 
 }
 
+func readExcel()  {
+	excelFileName := "/Users/dejunliu/Desktop/2018年4月报销表汇总.xlsx"
+	xlFile, err := xlsx.OpenFile(excelFileName)
+	if err != nil {
+
+	}
+	for _, sheet := range xlFile.Sheets {
+		for _, row := range sheet.Rows {
+			for _, cell := range row.Cells {
+				text := cell.String()
+				fmt.Printf("%s\n", text)
+			}
+		}
+	}
+}
+
 func main()  {
 	//gormMysql()
 	//readDevices()
+	//readExcel()
+	mainSignXiyu()
 	utils.JJKPrintln("Service End!")
 	select {
 	}

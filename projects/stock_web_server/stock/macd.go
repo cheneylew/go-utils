@@ -102,7 +102,8 @@ func macd(stock *models.Stock)  {
 
 
 func calculateMACD(code string, count int64) (todayDIF float64, lines []*models.KLine)  {
-	klines := GetStockDayKLine(code,count)
+	//klines := database.DB.GetKLineAllForStockCodeAndDays(code, int(count))
+	klines := CCGetKLinesWithCode(code, int(count))
 	if len(klines) <= 14 {
 		return 0, nil
 	}

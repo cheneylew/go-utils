@@ -15,7 +15,7 @@ Average Loss = [(previous Average Loss) x 13 + current Loss] / 14.
 http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:relative_strength_index_rsi
  */
 func calculateRSI(code string, count int64) (todayRSI float64, lines []*models.KLine)  {
-	klines := GetStockDayKLine(code,count)
+	klines := CCGetKLinesWithCode(code, int(count))
 	return klines[len(klines)-1].Rsi, calculateRSIWithLines(klines)
 }
 

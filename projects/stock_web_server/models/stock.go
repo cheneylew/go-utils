@@ -55,15 +55,16 @@ type Stock struct {
 	Infos []*StockInfo	`orm:"-"`
 	DeltaVal float64
 
-	FlowAmount float64 //流通市值
-	TotalAmount float64 //总市值
-	ChangeHandRate float64 //换手率
-	PERate float64 //市盈率 
-	PBRate float64 //市净率 
-	VolAmount float64 //成交量（手）  
-	VolAmountMoney float64 //成交额（万)
-	DeltaMoneyRate float64 //涨跌比例
-	DeltaMoney	float64 //涨跌金额
+	FlowAmount float64 		//流通市值
+	TotalAmount float64 	//总市值
+	ChangeHandRate float64	//换手率
+	PERate float64 			//市盈率 
+	PBRate float64 			//市净率 
+	VolAmount float64 		//成交量（手）  
+	VolAmountMoney float64 	//成交额（万)
+	DeltaMoneyRate float64 	//涨跌比例
+	DeltaMoney	float64 	//涨跌金额
+	VolRate	float64 		//量比
 
 	RedBarCount	float64  `orm:"-"` //macd 红色柱子总和
 	GreenBarCount	float64  `orm:"-"` //macd 绿色柱子总和
@@ -116,6 +117,9 @@ type KLine struct {
 	Kdj_k float64
 	Kdj_d float64
 	Kdj_j float64
+
+	//MA
+	MaVal float64
 }
 
 func (k *KLine)IsRed() bool {
