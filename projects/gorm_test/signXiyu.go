@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"github.com/cheneylew/goutil/utils"
 	"net/url"
+	"time"
 )
 
 func dbgPrintCurCookies() {
@@ -48,10 +49,7 @@ func testBaidu()  {
 	dbgPrintCurCookies()
 }
 
-func mainSignXiyu() {
-	//loginHtml := getUrlRespHtml("http://oa.ehsy.com/login/Login.jsp?logintype=1")
-	//utils.JJKPrintln(loginHtml)
-
+func login()  {
 	//登陆
 	vals := url.Values{}
 	vals.Set("loginfile","/wui/theme/ecology8/page/login.jsp?templateId=4&logintype=1&gopage=")
@@ -72,20 +70,90 @@ func mainSignXiyu() {
 	postHtml := utils.HTTPPostWithCookieCache("http://oa.ehsy.com/login/VerifyLogin.jsp", vals)
 	utils.JJKPrintln(postHtml)
 
+
 	//首页
 	getHtml := utils.HTTPGetWithCookieCache("http://oa.ehsy.com/wui/main.jsp?templateId=1")
 	utils.JJKPrintln(getHtml)
+}
 
+func signIn()  {
 	//签到
-	//sign1 := url.Values{}
-	//sign1.Set("signType","1")
-	//sign1Html := utils.HTTPPostWithCookieCache("http://oa.ehsy.com/hrm/schedule/HrmScheduleSignXMLHTTP.jsp?t=0.31008359812174624",sign1)
-	//utils.JJKPrintln(sign1Html)
-	//
-	////签退
-	//sign2 := url.Values{}
-	//sign2.Set("signType","2")
-	//sign2Html := utils.HTTPPostWithCookieCache("http://oa.ehsy.com/hrm/schedule/HrmScheduleSignXMLHTTP.jsp?t=0.31008359812174624",sign2)
-	//utils.JJKPrintln(sign2Html)
+	sign1 := url.Values{}
+	sign1.Set("signType","1")
+	sign1Html := utils.HTTPPostWithCookieCache("http://oa.ehsy.com/hrm/schedule/HrmScheduleSignXMLHTTP.jsp?t=0.31008359812174624",sign1)
+	utils.JJKPrintln(sign1Html)
+}
 
+func signOut()  {
+	//签退
+	sign2 := url.Values{}
+	sign2.Set("signType","2")
+	sign2Html := utils.HTTPPostWithCookieCache("http://oa.ehsy.com/hrm/schedule/HrmScheduleSignXMLHTTP.jsp?t=0.31008359812174624",sign2)
+	utils.JJKPrintln(sign2Html)
+}
+
+func currentDate() string {
+	return utils.JKDateNowStr()
+}
+
+func currentWeekDay() string {
+	t := utils.JKStringToDate(currentDate())
+	return t.Weekday().String()
+}
+
+func isWorkDay() bool {
+	workdays := []string{
+		"2018-09-29",
+		"2018-09-30",
+		"2018-10-01",
+		"2018-10-02",
+		"2018-10-03",
+		"2018-10-04",
+		"2018-10-05",
+	}
+	restDays := []string{
+		"2018-09-24",
+	}
+	isExtWork := utils.InSlice(currentDate(), workdays)
+	isExtRest := utils.InSlice(currentDate(), restDays)
+	if isExtRest {
+		return false
+	}
+	if isExtWork {
+		return true
+	}
+
+	if currentWeekDay() == "Saturday" || currentWeekDay() == "Sunday" {
+		return false
+	} else {
+		return true
+	}
+}
+
+func mainSignXiyu() {
+	signalExit := make(chan int, 1)
+	utils.CronJob("00 30 08 * * *", func() {
+		if isWorkDay() {
+			//休眠几分钟，每次不一样
+			sleepCount := utils.RandomIntBetween(0,20)
+			time.Sleep(time.Duration(sleepCount)*time.Minute)
+			login()
+			signIn()
+			utils.JJKPrintln("签到成功!")
+		}
+	})
+
+	utils.CronJob("00 10 18 * * *", func() {
+		if isWorkDay() {
+			//休眠几分钟，每次不一样
+			sleepCount := utils.RandomIntBetween(0,20)
+			time.Sleep(time.Duration(sleepCount)*time.Minute)
+			login()
+			signOut()
+			utils.JJKPrintln("签退成功!")
+		}
+	})
+
+	utils.JJKPrintln("签到程序,已启动！")
+	<-signalExit
 }
