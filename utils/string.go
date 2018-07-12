@@ -26,6 +26,11 @@ func JKStrToInt64(str string) int64 {
 	return int64(it)
 }
 
+func JKStrToFloat64(str string) float64 {
+	it,_ := strconv.ParseFloat(str, 64)
+	return float64(it)
+}
+
 func JKIntToStr(i int) string {
 	return strconv.Itoa(i)
 }

@@ -6,6 +6,8 @@ import (
 	"github.com/cheneylew/goutil/utils"
 	"net/url"
 	"time"
+	"path"
+	"fmt"
 )
 
 func dbgPrintCurCookies() {
@@ -130,16 +132,27 @@ func isWorkDay() bool {
 	}
 }
 
+func writeLog(msg string)  {
+	filePath := path.Join(utils.ExeDir(),"log.txt")
+	if !utils.FileExist(filePath) {
+		utils.FileWriteString(filePath,"")
+	}
+	fileContent := utils.FileReadAllString(filePath)
+	fileContent += fmt.Sprintf("%s %s\n",utils.JKTimeNowStr(),  msg)
+	utils.FileWriteString(filePath, fileContent)
+}
+
 func mainSignXiyu() {
 	signalExit := make(chan int, 1)
 	utils.CronJob("00 30 08 * * *", func() {
 		if isWorkDay() {
 			//休眠几分钟，每次不一样
-			sleepCount := utils.RandomIntBetween(0,20)
+			sleepCount := utils.RandomIntBetween(0,10)
 			time.Sleep(time.Duration(sleepCount)*time.Minute)
 			login()
 			signIn()
 			utils.JJKPrintln("签到成功!")
+			writeLog("签到成功!")
 		}
 	})
 
@@ -151,9 +164,11 @@ func mainSignXiyu() {
 			login()
 			signOut()
 			utils.JJKPrintln("签退成功!")
+			writeLog("签退成功!")
 		}
 	})
 
 	utils.JJKPrintln("签到程序,已启动！")
+	writeLog("签到程序,已启动！");
 	<-signalExit
 }

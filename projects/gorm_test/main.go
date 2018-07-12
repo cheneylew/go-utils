@@ -6,8 +6,8 @@ import (
 )
 
 func main()  {
-	mainSignXiyu()
-	//mainSQLSlow()
+	//mainSignXiyu()
+	mainSQLSlow()
 	utils.JJKPrintln("Finshed!")
 	select {
 	}
