@@ -17,3 +17,10 @@ func InSlice(val string, slice []string) bool {
 
 	return false
 }
+
+func LastOne(arr []string) string {
+	if len(arr) == 0 {
+		return ""
+	}
+	return arr[len(arr)-1]
+}
