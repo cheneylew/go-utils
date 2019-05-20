@@ -1,3 +1,8 @@
 .idea
 projects/gorm_test/签到程序
 tools/cmd/cmd
+projects/ehsy_mysql/data.log
+projects/ehsy_mysql/db.ini
+projects/ehsy_mysql/ehsy_mysql
+projects/gorm_test/gorm_test
+projects/gorm_test/log.txt

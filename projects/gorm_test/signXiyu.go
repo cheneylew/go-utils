@@ -8,6 +8,7 @@ import (
 	"time"
 	"path"
 	"fmt"
+	"strings"
 )
 
 func dbgPrintCurCookies() {
@@ -84,6 +85,13 @@ func signIn()  {
 	sign1.Set("signType","1")
 	sign1Html := utils.HTTPPostWithCookieCache("http://oa.ehsy.com/hrm/schedule/HrmScheduleSignXMLHTTP.jsp?t=0.31008359812174624",sign1)
 	utils.JJKPrintln(sign1Html)
+	if strings.Contains(sign1Html, "您已成功签到") || strings.Contains(sign1Html, "签到（签退）时间") {
+		utils.JJKPrintln("签到成功!")
+		writeLog("签到成功!")
+	} else {
+		utils.JJKPrintln("签到失败!")
+		writeLog("签到失败!")
+	}
 }
 
 func signOut()  {
@@ -92,6 +100,13 @@ func signOut()  {
 	sign2.Set("signType","2")
 	sign2Html := utils.HTTPPostWithCookieCache("http://oa.ehsy.com/hrm/schedule/HrmScheduleSignXMLHTTP.jsp?t=0.31008359812174624",sign2)
 	utils.JJKPrintln(sign2Html)
+	if strings.Contains(sign2Html, "签到（签退）时间") || strings.Contains(sign2Html, "您已成功签退") {
+		utils.JJKPrintln("签退成功!")
+		writeLog("签退成功!")
+	} else {
+		utils.JJKPrintln("签退失败!")
+		writeLog("签到失败!")
+	}
 }
 
 func currentDate() string {
@@ -105,16 +120,33 @@ func currentWeekDay() string {
 
 func isWorkDay() bool {
 	workdays := []string{
-		"2018-09-29",
-		"2018-09-30",
-		"2018-10-01",
-		"2018-10-02",
-		"2018-10-03",
-		"2018-10-04",
-		"2018-10-05",
+		"2018-12-29",
+		"2019-02-02",
+		"2019-02-03",
+		"2019-09-29",
+		"2019-10-12",
 	}
 	restDays := []string{
-		"2018-09-24",
+		"2018-12-31",
+		"2019-01-01",
+		"2019-02-04",
+		"2019-02-05",
+		"2019-02-06",
+		"2019-02-07",
+		"2019-02-08",
+		"2019-02-09",
+		"2019-02-10",
+		"2019-04-05",
+		"2019-05-01",
+		"2019-06-07",
+		"2019-09-13",
+		"2019-10-01",
+		"2019-10-02",
+		"2019-10-03",
+		"2019-10-04",
+		"2019-10-05",
+		"2019-10-06",
+		"2019-10-07",
 	}
 	isExtWork := utils.InSlice(currentDate(), workdays)
 	isExtRest := utils.InSlice(currentDate(), restDays)
@@ -138,7 +170,7 @@ func writeLog(msg string)  {
 		utils.FileWriteString(filePath,"")
 	}
 	fileContent := utils.FileReadAllString(filePath)
-	fileContent += fmt.Sprintf("%s %s\n",utils.JKTimeNowStr(),  msg)
+	fileContent += fmt.Sprintf("%s %s\r\n",utils.JKTimeNowStr(),  msg)
 	utils.FileWriteString(filePath, fileContent)
 }
 
@@ -151,8 +183,6 @@ func mainSignXiyu() {
 			time.Sleep(time.Duration(sleepCount)*time.Minute)
 			login()
 			signIn()
-			utils.JJKPrintln("签到成功!")
-			writeLog("签到成功!")
 		}
 	})
 
@@ -160,11 +190,15 @@ func mainSignXiyu() {
 		if isWorkDay() {
 			//休眠几分钟，每次不一样
 			sleepCount := utils.RandomIntBetween(0,20)
+			//周一 周二 周四 加班
+			if 	currentWeekDay() == "Monday" ||
+				currentWeekDay() == "Tuesday" ||
+				currentWeekDay() == "Thursday" {
+				sleepCount = 60*3+20+utils.RandomIntBetween(0,5)
+			}
 			time.Sleep(time.Duration(sleepCount)*time.Minute)
 			login()
 			signOut()
-			utils.JJKPrintln("签退成功!")
-			writeLog("签退成功!")
 		}
 	})
 
